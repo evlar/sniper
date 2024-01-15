@@ -81,9 +81,20 @@ def read_templates():
             return json.load(file)
     return {}
 
+
+
 def get_pm2_list():
-    result = subprocess.run(['pm2', 'jlist'], stdout=subprocess.PIPE)
-    return json.loads(result.stdout.decode('utf-8'))
+    result = subprocess.run(['pm2', 'jlist'], stdout=subprocess.PIPE, text=True)
+    output = result.stdout.strip()
+    if not output:
+        logging.error("PM2 jlist returned empty output.")
+        return []
+    try:
+        return json.loads(output)
+    except json.JSONDecodeError:
+        logging.error(f"Failed to decode JSON from PM2 jlist output: {output}")
+        return []
+
 
 def read_port_assignments():
     port_assignments_path = os.path.join(os.path.dirname(__file__), '..', PORT_ASSIGNMENTS_FILE)
