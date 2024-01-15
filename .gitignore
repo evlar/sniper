@@ -1,3 +1,5 @@
+__pycache__/
+*.pyc
 auto.py
 ecosystem.config.js
 *.log
