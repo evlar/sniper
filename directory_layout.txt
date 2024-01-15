@@ -1,0 +1,15 @@
+registration_sniper/
+├── src/
+│   ├── __init__.py
+│   ├── main_menu.py
+│   ├── miner_launcher.py
+│   └── registration_sniper.py
+├── data/
+│   ├── subtensor_endpoints.json
+│   └── miner_pm2_template.json
+├── logs/
+│   └── ... log files
+├── launch_auto_miner.py
+├── run.py
+├── requirements.txt
+└── README.md

@@ -1,0 +1,10 @@
+auto.py
+ecosystem.config.js
+*.log
+*.json
+src/main_menu(archived).py
+src/miner_launcher(archived).py
+resources/multi_auto_miner.sh
+resources/sniper_monitor.sh
+resources/sniper.py
+isregistered.py
