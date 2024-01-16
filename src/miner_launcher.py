@@ -246,7 +246,7 @@ def extract_netuid_from_hotkey(hotkey_name):
 def auto_miner_launcher(bt_endpoint):
     logging.info("Auto Miner Launcher started.")
     templates = read_templates()
-    
+
     # Create a Subtensor instance
     config = bt.subtensor.config()
     try:
@@ -259,29 +259,38 @@ def auto_miner_launcher(bt_endpoint):
 
     while True:
         sniper_processes = read_sniper_log()
+        logging.debug(f"Read {len(sniper_processes)} sniper processes from log.")
 
         for pm2_name, details in sniper_processes:
-            if details['endpoint'] == bt_endpoint:
+            logging.debug(f"Processing PM2 process: {pm2_name} with details: {details}")
+
+            if details['endpoint'] == bt_endpoint and details['status'] == 'active':
                 hotkey_name = details['hotkey_name']
                 wallet_name = details['wallet_name']
                 netuid = details['netuid']
                 axon_port = get_available_port(hotkey_name)
 
-                # Check if the hotkey is registered
                 hotkey_address = get_hotkey_address(wallet_name, hotkey_name)
                 if is_hotkey_registered(subtensor, hotkey_address, netuid):
                     pm2_command = construct_pm2_command(wallet_name, hotkey_name, axon_port, templates)
-                        
+
                     if pm2_command:
                         logging.info(f"Executing PM2 command: {' '.join(pm2_command)}")
                         start_mining_for_hotkey(pm2_command)
                         stop_sniper_process(pm2_name)
                         update_sniper_process_status(pm2_name, "stopped")
+                    else:
+                        all_processed = False  # Mark as not processed if PM2 command is not generated
+                        logging.warning(f"PM2 command not generated for {hotkey_name}.")
                 else:
                     all_processed = False  # Mark as not processed if any hotkey is not registered
+                    logging.info(f"Hotkey {hotkey_name} is not yet registered. Skipping.")
+            else:
+                logging.debug(f"Skipping inactive or unrelated process: {pm2_name}")
 
         if all_processed:
-            # All processes are processed, stop auto_miner_launcher and clear log
+            # All processes have been processed, so stop the auto_miner_launcher and clear the log
+            logging.info("All sniper processes have been processed. Stopping auto_miner_launcher and clearing log.")
             subprocess.run(['pm2', 'delete', 'auto_miner_launcher'])
             clear_sniper_log()
             break
@@ -293,7 +302,7 @@ def auto_miner_launcher(bt_endpoint):
         except Exception as e:
             logging.error(f"Error saving PM2 process list: {e}")
 
-        # Consider adding a sleep here to avoid high CPU usage
+        # Wait before the next check
         time.sleep(CHECK_INTERVAL)
 
 def clear_sniper_log():
@@ -301,4 +310,3 @@ def clear_sniper_log():
     log_file_path = os.path.join(script_dir, 'logs', 'sniper_processes.log')
     with open(log_file_path, 'w') as file:
         file.write('')  # Clear the log file
-
