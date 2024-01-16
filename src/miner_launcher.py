@@ -78,22 +78,17 @@ def stop_sniper_process(pm2_name):
     subprocess.run(['pm2', 'delete', pm2_name])
     logging.info(f"Stopped PM2 sniper process: {pm2_name}")
 
+#def start_mining_for_hotkey(pm2_command):
+#    if pm2_command:
+#        subprocess.run(pm2_command)
+#        logging.info(f"Started mining for hotkey: {pm2_command[6].split('_')[0]} on port {pm2_command[-1]}")
 
-
-def start_mining_for_hotkey(pm2_command):
-    if pm2_command:
-        subprocess.run(pm2_command)
-        logging.info(f"Started mining for hotkey: {pm2_command[6].split('_')[0]} on port {pm2_command[-1]}")
-'''
 def start_mining_for_hotkey(pm2_command):
     if pm2_command:
         subprocess.run(pm2_command)
         hotkey = pm2_command[6].split('_')[0]  # Assuming hotkey name is the 7th element in the command
         port = pm2_command[-1]  # Assuming port number is the last element in the command
         logging.info(f"Started mining for hotkey: {hotkey} on port {port}")
-'''
-
-
 
 # Helper functions
 def read_templates():
@@ -103,21 +98,17 @@ def read_templates():
             return json.load(file)
     return {}
 
-
-'''
-def get_pm2_list():
-    result = subprocess.run(['pm2', 'jlist'], stdout=subprocess.PIPE, text=True)
-    output = result.stdout.strip()
-    if not output:
-        logging.error("PM2 jlist returned empty output.")
-        return []
-    try:
-        return json.loads(output)
-    except json.JSONDecodeError:
-        logging.error(f"Failed to decode JSON from PM2 jlist output: {output}")
-        return []
-'''
-            
+#def get_pm2_list():
+#    result = subprocess.run(['pm2', 'jlist'], stdout=subprocess.PIPE, text=True)
+#    output = result.stdout.strip()
+#    if not output:
+#        logging.error("PM2 jlist returned empty output.")
+#        return []
+#    try:
+#        return json.loads(output)
+#    except json.JSONDecodeError:
+#        logging.error(f"Failed to decode JSON from PM2 jlist output: {output}")
+#        return []
 
 def read_sniper_log():
     # Path one level up from the current script directory
@@ -175,10 +166,6 @@ def update_sniper_process_status(pm2_name, new_status):
         logging.error(f"Error decoding JSON from log file: {e}")
     except Exception as e:
         logging.error(f"An error occurred updating the log file: {e}")
-
-
-
-
 
 def read_port_assignments():
     port_assignments_path = os.path.join(os.path.dirname(__file__), '..', PORT_ASSIGNMENTS_FILE)
