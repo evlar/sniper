@@ -1,4 +1,4 @@
-# run.py located in the root of the project directory
+# run.py
 
 import sys
 import os
