@@ -212,13 +212,23 @@ def save_pm2_command_template():
     path_to_miner = input("Enter the path to the miner.py for this subnet: ")
     logging_debug = input("Is logging.debug enabled for this subnet? (yes/no): ").lower() == 'yes'
 
-    templates = read_templates()  # Reads the current templates from miner_pm2_template.json
+    # Prompt for additional parameters
+    additional_params = {}
+    while True:
+        param_name = input("Enter additional parameter name (or 'done' to finish): ")
+        if param_name.lower() == 'done':
+            break
+        param_value = input(f"Enter value for {param_name}: ")
+        additional_params[param_name] = param_value
+
+    # Save the template with additional parameters
+    templates = read_templates()
     templates[f"subnet{subnet}"] = {
         "path_to_miner": path_to_miner,
-        "logging_debug": logging_debug
+        "logging_debug": logging_debug,
+        "additional_params": additional_params
     }
-
-    save_templates(templates)  # Saves the updated templates back to miner_pm2_template.json
+    save_templates(templates)
 
 
 def start_auto_miner_launcher():

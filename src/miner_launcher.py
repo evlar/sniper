@@ -49,17 +49,29 @@ def construct_pm2_command(wallet_name, hotkey_name, axon_port, templates):
         # Expand the path to miner
         path_to_miner = os.path.expanduser(subnet_template["path_to_miner"])
 
-        logging_debug = '--logging.debug' if subnet_template["logging_debug"] else ''
-        return [
+        # Start building the command
+        command = [
             'pm2', 'start', path_to_miner, '--name', f"{hotkey_name}_miner",
             '--interpreter', 'python3', '--',
             '--netuid', subnet_number, '--subtensor.network', 'local',
             '--wallet.name', wallet_name, '--wallet.hotkey', hotkey_name,
-            '--axon.port', str(axon_port), logging_debug
+            '--axon.port', str(axon_port)
         ]
+
+        # Add additional parameters from the template
+        additional_params = subnet_template.get("additional_params", {})
+        for param, value in additional_params.items():
+            command.extend([f"--{param}", value])
+
+        # Add logging debug if applicable at the end
+        if subnet_template.get("logging_debug", False):
+            command.append('--logging.debug')
+
+        return command
     else:
         logging.error(f"Template for subnet{subnet_number} not found.")
         return []
+
     
 
 def stop_sniper_process(pm2_name):
