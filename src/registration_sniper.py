@@ -21,8 +21,8 @@ parser.add_argument('--threshold', required=True, type=float, help='Registration
 
 args = parser.parse_args()
 
-# Define the log file path
-log_file_path = os.path.join(os.path.dirname(__file__), 'logs', 'sniper.log')
+# Define the log file path one level up from the current script directory
+log_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs', 'sniper.log')
 
 # Create 'logs' directory if it doesn't exist
 os.makedirs(os.path.dirname(log_file_path), exist_ok=True)

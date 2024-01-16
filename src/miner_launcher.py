@@ -16,7 +16,7 @@ log_file_path = os.path.join(os.path.dirname(__file__), '..', 'logs', 'auto_mine
 logs_dir = os.path.dirname(log_file_path)
 if not os.path.exists(logs_dir):
     os.makedirs(logs_dir)
-    
+
 # Setup logging to file in the logs directory
 logging.basicConfig(
     level=logging.INFO,
@@ -28,11 +28,13 @@ logging.basicConfig(
 )
 
 # Constants
-CHECK_INTERVAL = 1800  # 30 minutes
+CHECK_INTERVAL = 300  # 5 minutes
 PORT_ASSIGNMENTS_FILE = 'data/port_assignments.json'
 
+
+
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def get_available_port(hotkey_name):
     # Extract the numerical identifier from the hotkey name
@@ -60,16 +62,24 @@ def construct_pm2_command(wallet_name, hotkey_name, axon_port, templates):
         return []
     
 
-def stop_sniper_process(hotkey_name):
-    sniper_name = f"sniper_{hotkey_name}"
-    subprocess.run(['pm2', 'delete', sniper_name])
-    logging.info(f"Stopped PM2 sniper process: {sniper_name}")
+def stop_sniper_process(pm2_name):
+    subprocess.run(['pm2', 'delete', pm2_name])
+    logging.info(f"Stopped PM2 sniper process: {pm2_name}")
+
+
 
 def start_mining_for_hotkey(pm2_command):
     if pm2_command:
         subprocess.run(pm2_command)
         logging.info(f"Started mining for hotkey: {pm2_command[6].split('_')[0]} on port {pm2_command[-1]}")
-
+'''
+def start_mining_for_hotkey(pm2_command):
+    if pm2_command:
+        subprocess.run(pm2_command)
+        hotkey = pm2_command[6].split('_')[0]  # Assuming hotkey name is the 7th element in the command
+        port = pm2_command[-1]  # Assuming port number is the last element in the command
+        logging.info(f"Started mining for hotkey: {hotkey} on port {port}")
+'''
 
 
 
@@ -82,7 +92,7 @@ def read_templates():
     return {}
 
 
-
+'''
 def get_pm2_list():
     result = subprocess.run(['pm2', 'jlist'], stdout=subprocess.PIPE, text=True)
     output = result.stdout.strip()
@@ -94,6 +104,68 @@ def get_pm2_list():
     except json.JSONDecodeError:
         logging.error(f"Failed to decode JSON from PM2 jlist output: {output}")
         return []
+'''
+            
+
+def read_sniper_log():
+    # Path one level up from the current script directory
+    script_dir = os.path.dirname(os.path.dirname(__file__))
+    
+    log_file_path = os.path.join(script_dir, 'logs', 'sniper_processes.log')
+    
+    try:
+        with open(log_file_path, 'r') as log_file:
+            sniper_process_lines = log_file.readlines()
+
+        # Parsing each line to extract JSON data
+        parsed_log = []
+        for line in sniper_process_lines:
+            try:
+                # Split line into pm2_name and json_str, then parse the JSON
+                pm2_name, json_str = line.split(': ', 1)
+                json_data = json.loads(json_str.strip())
+                parsed_log.append((pm2_name, json_data))
+            except json.JSONDecodeError as e:
+                logging.error(f"Error decoding JSON from log line: {e}")
+            except ValueError:
+                logging.error(f"Error splitting log line: {line}")
+
+        return parsed_log
+    except FileNotFoundError:
+        logging.error("Sniper process log file not found.")
+        return []
+    
+def update_sniper_process_status(pm2_name, new_status):
+    script_dir = os.path.dirname(os.path.dirname(__file__))
+    log_file_path = os.path.join(script_dir, 'logs', 'sniper_processes.log')
+
+    try:
+        with open(log_file_path, 'r') as file:
+            log_entries = file.readlines()
+
+        updated_entries = []
+        for entry in log_entries:
+            name, json_str = entry.split(':', 1)
+            if name.strip() == pm2_name:
+                details = json.loads(json_str)
+                details["status"] = new_status
+                updated_entries.append(f"{name}: {json.dumps(details)}\n")
+            else:
+                updated_entries.append(entry)
+
+        # Write the updated log back to the file
+        with open(log_file_path, 'w') as file:
+            file.writelines(updated_entries)
+
+    except FileNotFoundError:
+        logging.error("Sniper process log file not found.")
+    except json.JSONDecodeError as e:
+        logging.error(f"Error decoding JSON from log file: {e}")
+    except Exception as e:
+        logging.error(f"An error occurred updating the log file: {e}")
+
+
+
 
 
 def read_port_assignments():
@@ -156,46 +228,51 @@ def extract_netuid_from_hotkey(hotkey_name):
         return int(parts[0][1:])
     else:
         logging.error("Invalid hotkey name format for extracting netuid")
-        return None
+        return None   
+
 
 def auto_miner_launcher(bt_endpoint):
     logging.info("Auto Miner Launcher started.")
     templates = read_templates()
     
+    # Create a Subtensor instance
+    config = bt.subtensor.config()
+    try:
+        subtensor = bt.subtensor(config=config, network=bt_endpoint)
+    except Exception as e:
+        logging.error(f"Failed to connect to the Subtensor: {e}")
+        return  # Exit the function if unable to connect
+
+    all_processed = True  # Variable to track if all sniper processes are processed
+
     while True:
-        pm2_list = get_pm2_list()
-        logging.debug(f"PM2 List: {pm2_list}")  # Log the entire PM2 list for debugging
+        sniper_processes = read_sniper_log()
 
-        for process in pm2_list:
-            pm2_name = process.get('name', '')
-            logging.debug(f"Processing PM2 process: {pm2_name}")  # Log each process name
+        for pm2_name, details in sniper_processes:
+            if details['endpoint'] == bt_endpoint:
+                hotkey_name = details['hotkey_name']
+                wallet_name = details['wallet_name']
+                netuid = details['netuid']
+                axon_port = get_available_port(hotkey_name)
 
-            if pm2_name.startswith('sniper_'):
-                hotkey_name = pm2_name.split('sniper_')[-1]
-                wallet_name = find_wallet_name(hotkey_name)
+                # Check if the hotkey is registered
                 hotkey_address = get_hotkey_address(wallet_name, hotkey_name)
-                netuid = extract_netuid_from_hotkey(hotkey_name)
+                if is_hotkey_registered(subtensor, hotkey_address, netuid):
+                    pm2_command = construct_pm2_command(wallet_name, hotkey_name, axon_port, templates)
+                        
+                    if pm2_command:
+                        logging.info(f"Executing PM2 command: {' '.join(pm2_command)}")
+                        start_mining_for_hotkey(pm2_command)
+                        stop_sniper_process(pm2_name)
+                        update_sniper_process_status(pm2_name, "stopped")
+                else:
+                    all_processed = False  # Mark as not processed if any hotkey is not registered
 
-                if wallet_name and hotkey_address and netuid is not None:
-                    # Use the provided chain_endpoint
-                    config = bt.subtensor.config()
-                    network = bt_endpoint
-                    try:
-                        subtensor = bt.subtensor(config=config, network=network)
-                    except Exception as e:
-                        logging.error(f"Failed to connect to the Subtensor: {e}")
-                        continue
-
-                    # Check if the hotkey is registered
-                    if is_hotkey_registered(subtensor, hotkey_address, netuid):
-                        axon_port = get_available_port(hotkey_name)
-                        pm2_command = construct_pm2_command(wallet_name, hotkey_name, axon_port, templates)
-                        if pm2_command:
-                            logging.info(f"Executing PM2 command: {' '.join(pm2_command)}")
-                            start_mining_for_hotkey(pm2_command)
-                            stop_sniper_process(hotkey_name)
-                    else:
-                        logging.warning(f"Hotkey {hotkey_name} is not registered or wallet not found.")
+        if all_processed:
+            # All processes are processed, stop auto_miner_launcher and clear log
+            subprocess.run(['pm2', 'delete', 'auto_miner_launcher'])
+            clear_sniper_log()
+            break
 
         # Save the current state of PM2 processes after processing
         try:
@@ -204,4 +281,12 @@ def auto_miner_launcher(bt_endpoint):
         except Exception as e:
             logging.error(f"Error saving PM2 process list: {e}")
 
+        # Consider adding a sleep here to avoid high CPU usage
         time.sleep(CHECK_INTERVAL)
+
+def clear_sniper_log():
+    script_dir = os.path.dirname(os.path.dirname(__file__))
+    log_file_path = os.path.join(script_dir, 'logs', 'sniper_processes.log')
+    with open(log_file_path, 'w') as file:
+        file.write('')  # Clear the log file
+

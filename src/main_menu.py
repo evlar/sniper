@@ -5,6 +5,21 @@ import json
 from getpass import getpass
 from miner_launcher import auto_miner_launcher
 
+def log_sniper_process(pm2_name, sniper_details):
+    # Path one level up from the current script directory
+    script_dir = os.path.dirname(os.path.dirname(__file__))
+
+    # Set the path for the log file
+    log_file_path = os.path.join(script_dir, 'logs', 'sniper_processes.log')
+
+    os.makedirs(os.path.join(script_dir, 'logs'), exist_ok=True)
+
+    # Add an initial status to the sniper details
+    sniper_details['status'] = 'active'
+
+    with open(log_file_path, 'a') as log_file:
+        json_data = json.dumps(sniper_details)
+        log_file.write(f"{pm2_name}: {json_data}\n")
 
 def read_endpoints():
     data_folder = os.path.join(os.path.dirname(__file__), '..', 'data')  # Adjusted path
@@ -58,7 +73,7 @@ def choose_subtensor_endpoint():
             return bt_endpoint
     else:
         return "ws://127.0.0.1:9944"
-
+    
 
 def registration_sniper():
     bt_netuid = input("To which subnet would you like to register?: ")
@@ -136,7 +151,7 @@ def registration_sniper():
     bt_cold_pw_wallet = getpass("Enter your Bittensor wallet password: ")
 
     for selected_hotkey in selected_hotkeys:
-        sniper_script_path = os.path.join(os.path.dirname(__file__), 'registration_sniper.py')  # Adjusted path
+        sniper_script_path = os.path.join(os.path.dirname(__file__), 'registration_sniper.py')
         pm2_name = f"sniper_{selected_hotkey}"
 
         # Construct the command with the correct subtensor choice
@@ -153,16 +168,23 @@ def registration_sniper():
             '--netuid', bt_netuid,
             '--threshold', registration_fee_threshold,
         ]
+
         subprocess.run(command)
         print(f"Launched {selected_hotkey} in pm2 instance named {pm2_name}.")
 
-    print("All selected hotkeys have been processed.")
+        # Log the sniper process
+        sniper_details = {
+            'wallet_name': selected_wallet,
+            'hotkey_name': selected_hotkey,
+            'subtensor_choice': subtensor_choice,
+            'endpoint': bt_endpoint,
+            'netuid': bt_netuid,
+            'threshold': registration_fee_threshold
+        }
+        log_sniper_process(pm2_name, sniper_details)
 
 #######################################################################################################################################################
 
-import subprocess
-import json
-import os
 
 
 def save_templates(templates):
