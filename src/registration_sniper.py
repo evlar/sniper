@@ -19,6 +19,7 @@ parser.add_argument('--endpoint', required=True, help='Bittensor endpoint')
 parser.add_argument('--netuid', required=True, help='Bittensor network UID')
 parser.add_argument('--threshold', required=True, type=float, help='Registration fee threshold')
 
+# Parse command line arguments
 args = parser.parse_args()
 
 # Define the log file path one level up from the current script directory
@@ -27,7 +28,7 @@ log_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs',
 # Create 'logs' directory if it doesn't exist
 os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
-# Set logging with RotatingFileHandler
+# Set up logging with RotatingFileHandler
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -50,11 +51,11 @@ registration_fee_threshold = args.threshold
 # Hardcoded wallet path
 bt_wallet_path = "~/.bittensor/wallets"
 
-# Constants
+# Constants for sleep durations
 SLEEP_TIME_SHORT = 10
 SLEEP_TIME_LONG = 20
 
-# Set config
+# Set Bittensor configuration
 config = bt.config()
 config.name = bt_wallet_name
 config.hotkey = bt_hotkey_name
@@ -64,7 +65,7 @@ config.netuid = bt_netuid
 config.network = "local" if subtensor_choice == "local" else "remote"
 config.no_prompt = True
 
-# Initialize wallet and subtensor
+# Initialize Bittensor wallet and subtensor
 wallet = bt.wallet(config.name, config.hotkey, config.path)
 subtensor = bt.subtensor(config.chain_endpoint)
 logger.info(f"Wallet: {wallet}")
@@ -73,13 +74,28 @@ logger.info(f"Subtensor: {subtensor}")
 # Registration loop
 while True:
     try:
+        # Get the current cost of registration
         current_cost = subtensor.burn(config.netuid)
         logger.info("Current cost: %s", current_cost.tao)
+        
+        # Check if the current cost is below the threshold
+        if current_cost.tao <
+# Check if the current cost is below the threshold
         if current_cost.tao < registration_fee_threshold:
             logger.info(
                 "Current registration fee below threshold. Attempting to register..."
             )
 
+            # Re-check the current cost right before registering
+            current_cost = subtensor.burn(config.netuid)
+            if current_cost.tao >= registration_fee_threshold:
+                logger.info(
+                    "Registration fee is now above threshold. Waiting to repeat..."
+                )
+                sleep(SLEEP_TIME_SHORT)
+                continue  # Skip the rest of the loop and start over
+
+            # Use pexpect to spawn a child process for registration
             child = pexpect.spawn(
                 "python3",
                 [
@@ -108,9 +124,10 @@ except Exception as e:
             output = child.before.decode()
             logger.info(output)  # Print the output from the command
 
-            if "Registered." in output:
+            # Check if the neuron was successfully registered
+            if "Registered" in output:  # Modified check as per suggestion
                 logger.info("Neuron registered.")
-                break
+                break  # Exit the loop
             else:
                 logger.info("Registration unsuccessful. Waiting to repeat....")
                 sleep(SLEEP_TIME_LONG)
