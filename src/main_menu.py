@@ -1,5 +1,6 @@
 # main_menu.py
 import subprocess
+import shutil
 import os
 import json
 from getpass import getpass
@@ -237,30 +238,60 @@ def start_auto_miner_launcher():
     subprocess.run(['pm2', 'start', launcher_script_path, '--interpreter', 'python3', '--name', 'auto_miner_launcher', '--', '--endpoint', bt_endpoint])
     print("Auto Miner Launcher started as PM2 process.")
 
+def clear_all_logs():
+    script_dir = os.path.dirname(os.path.dirname(__file__))
+    logs_dir = os.path.join(script_dir, 'logs')
+
+    for filename in os.listdir(logs_dir):
+        if filename == '.gitkeep':  # Skip .gitkeep file
+            continue
+
+        file_path = os.path.join(logs_dir, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+                print(f"Deleted: {file_path}")
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+                print(f"Deleted directory: {file_path}")
+        except Exception as e:
+            print(f'Failed to delete {file_path}. Reason: {e}')
 
 def main_menu():
     while True:
         print("\nMain Menu:")
-        print("1. Registration Sniper")
-        print("2. Auto Miner Launcher")
-        print("3. Save PM2 Launch Command Templates for Each Subnet")
-        print("4. Exit")
+        print("1. Save PM2 Launch Command Templates for Each Subnet")
+        print("2. Registration Sniper")
+        print("3. Auto Miner Launcher")
+        print("4. Clear Logs")
+        print("5. Exit")
 
         choice = input("Enter the number of your choice: ")
 
         if choice == '1':
-            registration_sniper()
-        elif choice == '2':
-            start_auto_miner_launcher()
-        elif choice == '3':
             save_pm2_command_template()
+        elif choice == '2':
+            registration_sniper()
+        elif choice == '3':
+            start_auto_miner_launcher()
         elif choice == '4':
+            print("\033[91mWARNING: Clearing logs will delete all log files in the 'logs' directory.\033[0m")
+            print("This may include important information about ongoing or past processes.")
+            print("Proceed only if you are sure that you don't need these logs.")
+            confirm = input("Type 'yes' to confirm log deletion: ").lower()
+            if confirm == 'yes':
+                print("Clearing logs...")
+                clear_all_logs()
+            else:
+                print("Log deletion cancelled.")
+        elif choice == '5':
             print("Exiting program.")
             break
         else:
-            print("Invalid choice. Please enter a number from 1 to 4.")
+            print("Invalid choice. Please enter a number from 1 to 5.")
 
 # Run the main menu
 if __name__ == "__main__":
     main_menu()
+
 
