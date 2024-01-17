@@ -43,6 +43,8 @@ def read_ssh_details():
     with open(SSH_DETAILS_FILE, 'r') as file:
         return json.load(file)
 
+import time  # Ensure this import is at the top of your script
+
 def start_remote_miner(ip_address, username, key_path, pm2_command, hotkey_name):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -56,6 +58,9 @@ def start_remote_miner(ip_address, username, key_path, pm2_command, hotkey_name)
         logging.info(stdout.read().decode())
         logging.error(stderr.read().decode())
 
+        # Wait for 30 seconds before restarting
+        time.sleep(30)
+
         # Construct the PM2 restart command with --update-env
         restart_command = f'pm2 restart {hotkey_name}_miner --update-env'
         stdout, stderr = ssh.exec_command(restart_command)[:2]
@@ -67,6 +72,7 @@ def start_remote_miner(ip_address, username, key_path, pm2_command, hotkey_name)
         logging.error(f"SSH connection error: {e}")
     finally:
         ssh.close()
+
 
 # sniper process occurs locally, so we need to use the local pm2 to stop it, or call in the 'stop_sniper_process' function from miner_launcher.py
 #def stop_remote_sniper_process(ip_address, username, key_path, pm2_name):

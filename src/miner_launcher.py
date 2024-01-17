@@ -100,6 +100,7 @@ def stop_sniper_process(pm2_name):
 #        subprocess.run(pm2_command)
 #        logging.info(f"Started mining for hotkey: {pm2_command[6].split('_')[0]} on port {pm2_command[-1]}")
 
+
 def start_mining_for_hotkey(pm2_command):
     if pm2_command:
         # Start the PM2 process
@@ -108,10 +109,14 @@ def start_mining_for_hotkey(pm2_command):
         port = pm2_command[-1]  # Assuming port number is the last element in the command
         logging.info(f"Started mining for hotkey: {hotkey} on port {port}")
 
+        # Wait for 30 seconds before restarting
+        time.sleep(30)
+
         # Restart the same process with --update-env
         restart_command = ['pm2', 'restart', f"{hotkey}_miner", '--update-env']
         subprocess.run(restart_command)
         logging.info(f"Restarted mining for hotkey: {hotkey} with --update-env on port {port}")
+
 
 
 # Helper functions
