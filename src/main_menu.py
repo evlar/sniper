@@ -308,6 +308,7 @@ def main_menu():
         print("\n\033[1mWelcome to the Registration Sniper\033[0m")
         print("\033[93mNote: Hotkeys must be named in the format: `s<netuid>_<number>`\033[0m")
         print("\033[93mExample: s8_1, s8_2, s8_3, etc.\033[0m")
+        print("\033[93mNote: Ensure consitant wallet.name across all machines\033[0m")
         print("\nMain Menu:")
         print("1. Save PM2 Launch Command Templates for Each Subnet before using Auto Miner Launcher")
         print("2. Save SSH key path for remote miner launching")
