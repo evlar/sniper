@@ -1,4 +1,3 @@
-
 # README.md for registration_sniper
 
 ## Project Overview
@@ -8,7 +7,7 @@
 ## Features
 
 - **Registration Sniper**: Monitors registration fees and registers neurons when the fee is affordable.
-- **Auto Miner Launcher**: Automates the launching of miners for different hotkeys and subnets.
+- **Auto Miner Launcher**: Automates the launching of miners for different hotkeys and subnets, both locally and remotely.
 - **Subtensor Endpoint Management**: Handles local and remote subtensor endpoints, allowing users to switch between them easily.
 - **Wallet and Hotkey Management**: Manages Bittensor wallets and hotkeys, ensuring secure and efficient operations.
 
@@ -33,8 +32,19 @@ To set up the "registration_sniper" project, follow these steps:
 
 2. **Main Menu Options**:
    - Registration Sniper: Manage registration processes based on current fee thresholds.
-   - Auto Miner Launcher: Start miners automatically for registered hotkeys.
+   - Auto Miner Launcher (Local): Start miners automatically for registered hotkeys on the local machine.
+   - Auto Miner Launcher (Remote): Launch miner processes on remote machines for registered hotkeys.
    - Save PM2 Command Templates: Configure PM2 command templates for different subnets.
+
+## Remote Miner Launcher
+
+The remote miner launcher feature extends the auto miner launcher functionality by enabling the starting of miner processes on remote servers. This is useful when managing a fleet of miners distributed across different machines.
+
+To use this feature:
+
+- Configure SSH details for the remote servers in `data/ssh_details.json`.
+- Use the main menu to launch miners remotely, specifying the desired subtensor endpoint.
+- The system will handle the process of connecting to the remote server, validating the registration status of hotkeys, and initiating the miner processes.
 
 ## Hotkey Naming Structure
 
@@ -51,7 +61,7 @@ This naming structure is crucial for the system to correctly identify and manage
 ## Project Structure
 
 - `src/`: Contains the core Python modules.
-- `data/`: Stores JSON configuration files like subtensor endpoints and miner PM2 templates.
+- `data/`: Stores JSON configuration files like subtensor endpoints, miner PM2 templates, and SSH details for remote servers.
 - `logs/`: Log files for different processes.
 - `run.py`: Entry point for running the main menu.
 - `requirements.txt`: Lists the Python dependencies.
@@ -64,3 +74,9 @@ Contributions to "registration_sniper" are welcome. Please adhere to the followi
 2. Write clear and concise commit messages.
 3. Ensure your code adheres to the project's style and requirements.
 4. Create a pull request.
+
+For any substantial changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+Please make sure to update the license as appropriate for your project.
