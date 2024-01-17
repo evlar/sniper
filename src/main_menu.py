@@ -211,8 +211,8 @@ def read_templates():
 
 
 def save_pm2_command_template():
-    subnet = input("Enter the subnet number (e.g., '18' for subnet18): ")
-    path_to_miner = input("Enter the path to the miner.py for this subnet: ")
+    subnet = input("Enter the subnet number: ")
+    path_to_miner = input("Enter the full path to the miner.py for this subnet: ")
     logging_debug = input("Is logging.debug enabled for this subnet? (yes/no): ").lower() == 'yes'
 
     # Prompt for additional parameters
@@ -306,11 +306,13 @@ def save_ssh_details():
 def main_menu():
     while True:
         print("\n\033[1mWelcome to the Registration Sniper\033[0m")
+        print("\033[93mNote: Hotkeys must be named in the format: `s<netuid>_<number>`\033[0m")
+        print("\033[93mExample: s8_1, s8_2, s8_3, etc.\033[0m")
         print("\nMain Menu:")
         print("1. Save PM2 Launch Command Templates for Each Subnet before using Auto Miner Launcher")
         print("2. Save SSH key path for remote miner launching")
         print("3. Registration Sniper")
-        print("4. Auto Miner Launcher (locally) \033[93m Not working from a Contabo VPS\033[0m")
+        print("4. Auto Miner Launcher (locally) \033[93m Not working on a Contabo VPS\033[0m")
 
         print("5. Auto Miner Launcher (remotely)")
         print("6. Clear Logs")
