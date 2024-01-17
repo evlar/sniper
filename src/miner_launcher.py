@@ -65,7 +65,8 @@ def construct_pm2_command(wallet_name, hotkey_name, axon_port, templates, local=
         # Start building the command
         command = [
             'pm2', 'start', path_to_miner, '--name', f"{hotkey_name}_miner",
-            '--interpreter', 'python3', '--',
+            '--interpreter', 'python3',
+            '--update-env', '--',
             '--netuid', subnet_number, '--subtensor.network', 'local',
             '--wallet.name', wallet_name, '--wallet.hotkey', hotkey_name,
             '--axon.port', str(axon_port)
