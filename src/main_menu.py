@@ -305,11 +305,13 @@ def save_ssh_details():
 
 def main_menu():
     while True:
+        print("\n\033[1mWelcome to the Registration Sniper\033[0m")
         print("\nMain Menu:")
-        print("1. Save PM2 Launch Command Templates for Each Subnet")
-        print("2. Save VPS connections for remote miner launching")
+        print("1. Save PM2 Launch Command Templates for Each Subnet before using Auto Miner Launcher")
+        print("2. Save SSH key path for remote miner launching")
         print("3. Registration Sniper")
-        print("4. Auto Miner Launcher (locally)")
+        print("4. Auto Miner Launcher (locally) \033[93m Not working from a Contabo VPS\033[0m")
+
         print("5. Auto Miner Launcher (remotely)")
         print("6. Clear Logs")
         print("7. Exit")
