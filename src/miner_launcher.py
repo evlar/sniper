@@ -42,12 +42,25 @@ def get_available_port(hotkey_name):
     miner_number = int(miner_number)
     return 9000 + (miner_number - 1)
     
-def construct_pm2_command(wallet_name, hotkey_name, axon_port, templates):
+def construct_pm2_command(wallet_name, hotkey_name, axon_port, templates, local=True):
     subnet_number = hotkey_name.split('_')[0][1:]
     subnet_template = templates.get(f"subnet{subnet_number}")
+
     if subnet_template:
-        # Expand the path to miner
-        path_to_miner = os.path.expanduser(subnet_template["path_to_miner"])
+        # Get the path to miner and expand it if necessary
+        path_to_miner = subnet_template["path_to_miner"]
+        
+        if local:
+            # Resolve path for local environment
+            if path_to_miner.startswith("~/"):
+                path_to_miner = os.path.expanduser(path_to_miner)
+            elif not os.path.isabs(path_to_miner):
+                script_dir = os.path.dirname(os.path.dirname(__file__))
+                path_to_miner = os.path.join(script_dir, path_to_miner)
+        else:
+            # For remote environment, assume the path is correct as is or needs special handling
+            # Specific logic for remote path resolution (if needed) goes here
+            pass  # Placeholder for potential future logic
 
         # Start building the command
         command = [
@@ -71,6 +84,10 @@ def construct_pm2_command(wallet_name, hotkey_name, axon_port, templates):
     else:
         logging.error(f"Template for subnet{subnet_number} not found.")
         return []
+
+
+
+
 
     
 
@@ -233,6 +250,9 @@ def extract_netuid_from_hotkey(hotkey_name):
 def auto_miner_launcher(bt_endpoint):
     logging.info("Auto Miner Launcher started.")
     templates = read_templates()
+
+    all_processed = True
+
 
     # Create a Subtensor instance
     config = bt.subtensor.config()

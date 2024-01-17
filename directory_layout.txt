@@ -3,13 +3,19 @@ registration_sniper/
 │   ├── __init__.py
 │   ├── main_menu.py
 │   ├── miner_launcher.py
+│   ├── miner_launcher_remote.py
 │   └── registration_sniper.py
 ├── data/
 │   ├── subtensor_endpoints.json
+│   ├── ssh_details.json
 │   └── miner_pm2_template.json
 ├── logs/
-│   └── ... log files
+│   ├── auto_miner_launcher_remote.log
+│   ├── auto_miner_launcher.log
+│   ├── sniper_processes.log
+│   └── sniper.log
 ├── launch_auto_miner.py
+├── launch_auto_miner_remote.py
 ├── run.py
 ├── requirements.txt
 └── README.md

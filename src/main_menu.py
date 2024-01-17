@@ -5,6 +5,8 @@ import os
 import json
 from getpass import getpass
 from miner_launcher import auto_miner_launcher
+#from miner_launcher_remote import start_auto_miner_launcher_remote
+
 
 def log_sniper_process(pm2_name, sniper_details):
     # Path one level up from the current script directory
@@ -238,6 +240,13 @@ def start_auto_miner_launcher():
     subprocess.run(['pm2', 'start', launcher_script_path, '--interpreter', 'python3', '--name', 'auto_miner_launcher', '--', '--endpoint', bt_endpoint])
     print("Auto Miner Launcher started as PM2 process.")
 
+def start_auto_miner_launcher_remote():
+    bt_endpoint = choose_subtensor_endpoint()  # Get the subtensor endpoint
+    launcher_script_path = os.path.join(os.path.dirname(__file__), '..', 'launch_auto_miner_remote.py')
+    subprocess.run(['pm2', 'start', launcher_script_path, '--interpreter', 'python3', '--name', 'auto_miner_launcher_remote', '--', '--endpoint', bt_endpoint])
+    print("Remote Auto Miner Launcher started as PM2 process.")
+
+
 def clear_all_logs():
     script_dir = os.path.dirname(os.path.dirname(__file__))
     logs_dir = os.path.join(script_dir, 'logs')
@@ -257,24 +266,67 @@ def clear_all_logs():
         except Exception as e:
             print(f'Failed to delete {file_path}. Reason: {e}')
 
+
+def save_ssh_details():
+    data_folder = os.path.join(os.path.dirname(__file__), '..', 'data')
+    ssh_details_file = 'ssh_details.json'
+    ssh_details_path = os.path.join(data_folder, ssh_details_file)
+
+    # Create the data folder if it doesn't exist
+    if not os.path.exists(data_folder):
+        os.makedirs(data_folder)
+
+    # Load existing SSH details if the file exists
+    if os.path.exists(ssh_details_path):
+        with open(ssh_details_path, 'r') as file:
+            ssh_details = json.load(file)
+    else:
+        ssh_details = {}
+
+    # Get details for a new VPS
+    subnet = input("Enter the subnet number (e.g., '18' for subnet18): ")
+    ip_address = input("Enter the IP address of the VPS: ")
+    username = input("Enter the SSH username: ")
+    key_path = input("Enter the path to the SSH private key (e.g., ~/.ssh/id_ed25519_vps): ")
+
+    # Save the new VPS details
+    ssh_details[f"subnet{subnet}"] = {
+        "ip_address": ip_address,
+        "username": username,
+        "key_path": key_path
+    }
+
+    # Write all details back to the file
+    with open(ssh_details_path, 'w') as file:
+        json.dump(ssh_details, file, indent=4)
+
+    print(f"SSH details saved for subnet {subnet}.")
+
+
 def main_menu():
     while True:
         print("\nMain Menu:")
         print("1. Save PM2 Launch Command Templates for Each Subnet")
-        print("2. Registration Sniper")
-        print("3. Auto Miner Launcher")
-        print("4. Clear Logs")
-        print("5. Exit")
+        print("2. Save VPS connections for remote miner launching")
+        print("3. Registration Sniper")
+        print("4. Auto Miner Launcher (locally)")
+        print("5. Auto Miner Launcher (remotely)")
+        print("6. Clear Logs")
+        print("7. Exit")
 
         choice = input("Enter the number of your choice: ")
 
         if choice == '1':
             save_pm2_command_template()
         elif choice == '2':
-            registration_sniper()
+            save_ssh_details()
         elif choice == '3':
-            start_auto_miner_launcher()
+            registration_sniper()
         elif choice == '4':
+            start_auto_miner_launcher()
+        elif choice == '5':
+            start_auto_miner_launcher_remote()
+        elif choice == '6':
             print("\033[91mWARNING: Clearing logs will delete all log files in the 'logs' directory.\033[0m")
             print("This may include important information about ongoing or past processes.")
             print("Proceed only if you are sure that you don't need these logs.")
@@ -284,7 +336,7 @@ def main_menu():
                 clear_all_logs()
             else:
                 print("Log deletion cancelled.")
-        elif choice == '5':
+        elif choice == '7':
             print("Exiting program.")
             break
         else:

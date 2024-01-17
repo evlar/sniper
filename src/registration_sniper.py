@@ -78,8 +78,6 @@ while True:
         current_cost = subtensor.burn(config.netuid)
         logger.info("Current cost: %s", current_cost.tao)
         
-        # Check if the current cost is below the threshold
-        if current_cost.tao <
 # Check if the current cost is below the threshold
         if current_cost.tao < registration_fee_threshold:
             logger.info(
