@@ -43,8 +43,7 @@ def read_ssh_details():
     with open(SSH_DETAILS_FILE, 'r') as file:
         return json.load(file)
 
-
-def start_remote_miner(ip_address, username, key_path, pm2_command):
+def start_remote_miner(ip_address, username, key_path, pm2_command, hotkey_name):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     expanded_key_path = os.path.expanduser(key_path)
@@ -52,26 +51,28 @@ def start_remote_miner(ip_address, username, key_path, pm2_command):
     try:
         ssh.connect(ip_address, username=username, key_filename=expanded_key_path)
 
-        # Execute the command (already adjusted for remote paths by construct_pm2_command)
-        stdin, stdout, stderr = ssh.exec_command(' '.join(pm2_command))
+        # Execute the PM2 start command
+        stdout, stderr = ssh.exec_command(' '.join(pm2_command))[:2]
         logging.info(stdout.read().decode())
         logging.error(stderr.read().decode())
+
+        # Construct the PM2 restart command with --update-env
+        restart_command = f'pm2 restart {hotkey_name}_miner --update-env'
+        stdout, stderr = ssh.exec_command(restart_command)[:2]
+        logging.info(f"Restarting {hotkey_name}_miner with --update-env")
+        logging.info(stdout.read().decode())
+        logging.error(stderr.read().decode())
+
     except Exception as e:
         logging.error(f"SSH connection error: {e}")
     finally:
         ssh.close()
-
-
-
-
 
 # sniper process occurs locally, so we need to use the local pm2 to stop it, or call in the 'stop_sniper_process' function from miner_launcher.py
 #def stop_remote_sniper_process(ip_address, username, key_path, pm2_name):
 #    stop_command = ['pm2', 'delete', pm2_name]
 #    start_remote_miner(ip_address, username, key_path, stop_command)
 ################################################################################################################################################
-
-
 
 def auto_miner_launcher_remote(bt_endpoint):
     logging.info("Remote Auto Miner Launcher started.")
@@ -109,7 +110,7 @@ def auto_miner_launcher_remote(bt_endpoint):
                         if subnet in ssh_details:
                             ssh_info = ssh_details[subnet]
                             logging.info(f"Executing remote PM2 command: {' '.join(pm2_command)}")
-                            start_remote_miner(ssh_info['ip_address'], ssh_info['username'], ssh_info['key_path'], pm2_command)
+                            start_remote_miner(ssh_info['ip_address'], ssh_info['username'], ssh_info['key_path'], pm2_command, hotkey_name)
                             stop_sniper_process(pm2_name)
                             update_sniper_process_status(pm2_name, "stopped")
                         else:

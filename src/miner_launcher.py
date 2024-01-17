@@ -65,8 +65,7 @@ def construct_pm2_command(wallet_name, hotkey_name, axon_port, templates, local=
         # Start building the command
         command = [
             'pm2', 'start', path_to_miner, '--name', f"{hotkey_name}_miner",
-            '--interpreter', 'python3',
-            '--update-env', '--',
+            '--interpreter', 'python3', '--',
             '--netuid', subnet_number, '--subtensor.network', 'local',
             '--wallet.name', wallet_name, '--wallet.hotkey', hotkey_name,
             '--axon.port', str(axon_port)
@@ -103,10 +102,17 @@ def stop_sniper_process(pm2_name):
 
 def start_mining_for_hotkey(pm2_command):
     if pm2_command:
+        # Start the PM2 process
         subprocess.run(pm2_command)
         hotkey = pm2_command[6].split('_')[0]  # Assuming hotkey name is the 7th element in the command
         port = pm2_command[-1]  # Assuming port number is the last element in the command
         logging.info(f"Started mining for hotkey: {hotkey} on port {port}")
+
+        # Restart the same process with --update-env
+        restart_command = ['pm2', 'restart', f"{hotkey}_miner", '--update-env']
+        subprocess.run(restart_command)
+        logging.info(f"Restarted mining for hotkey: {hotkey} with --update-env on port {port}")
+
 
 # Helper functions
 def read_templates():
@@ -284,7 +290,7 @@ def auto_miner_launcher(bt_endpoint):
 
                     if pm2_command:
                         logging.info(f"Executing PM2 command: {' '.join(pm2_command)}")
-                        start_mining_for_hotkey(pm2_command)
+                        start_mining_for_hotkey(pm2_command, hotkey_name)
                         stop_sniper_process(pm2_name)
                         update_sniper_process_status(pm2_name, "stopped")
                     else:
