@@ -125,17 +125,9 @@ def start_mining_for_hotkey(pm2_command, hotkey_name):
 
 def start_mining_for_hotkey(pm2_command, hotkey_name):
     if pm2_command:
-        # Start the PM2 process
-        subprocess.run(pm2_command)
+        # Start the PM2 process with the command that includes environment variables
+        subprocess.run(pm2_command, shell=True)
         logging.info(f"Started mining for hotkey: {hotkey_name} on port {pm2_command[-1]}")
-
-        # Wait for 30 seconds before restarting
-        time.sleep(30)
-
-        # Restart the same process with --update-env
-        restart_command = f'pm2 restart {hotkey_name}_miner --update-env'
-        subprocess.run(restart_command, shell=True)
-        logging.info(f"Restarted mining for hotkey: {hotkey_name} with --update-env")
 
 
 # Helper functions
