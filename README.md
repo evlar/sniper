@@ -1,3 +1,4 @@
+
 # README.md for registration_sniper
 
 ## Project Overview
@@ -7,7 +8,7 @@
 ## Features
 
 - **Registration Sniper**: Monitors registration fees and registers neurons when the fee is affordable.
-- **Auto Miner Launcher**: Automates the launching of miners for different hotkeys and subnets, both locally and remotely.
+- **Auto Miner Launcher**: Automates the launching of miners for different hotkeys and subnets, both locally and remotely, with environment variable configuration.
 - **Subtensor Endpoint Management**: Handles local and remote subtensor endpoints, allowing users to switch between them easily.
 - **Wallet and Hotkey Management**: Manages Bittensor wallets and hotkeys, ensuring secure and efficient operations.
 
@@ -32,19 +33,19 @@ To set up the "registration_sniper" project, follow these steps:
 
 2. **Main Menu Options**:
    - Registration Sniper: Manage registration processes based on current fee thresholds.
-   - Auto Miner Launcher (Local): Start miners automatically for registered hotkeys on the local machine.
-   - Auto Miner Launcher (Remote): Launch miner processes on remote machines for registered hotkeys.
-   - Save PM2 Command Templates: Configure PM2 command templates for different subnets.
+   - Auto Miner Launcher (Local): Start miners automatically for registered hotkeys on the local machine, including environment variable configuration.
+   - Auto Miner Launcher (Remote): Launch miner processes on remote machines for registered hotkeys, with environment variable support.
+   - Save PM2 Command Templates: Configure PM2 command templates for different subnets, including API keys and other environment variables.
 
 ## Remote Miner Launcher
 
-The remote miner launcher feature extends the auto miner launcher functionality by enabling the starting of miner processes on remote servers. This is useful when managing a fleet of miners distributed across different machines.
+The remote miner launcher feature extends the auto miner launcher functionality by enabling the starting of miner processes on remote servers. This includes the ability to configure and pass environment variables required by the miner.
 
 To use this feature:
 
 - Configure SSH details for the remote servers in `data/ssh_details.json`.
-- Use the main menu to launch miners remotely, specifying the desired subtensor endpoint.
-- The system will handle the process of connecting to the remote server, validating the registration status of hotkeys, and initiating the miner processes.
+- Use the main menu to launch miners remotely, specifying the desired subtensor endpoint and environment variables.
+- The system will handle the process of connecting to the remote server, validating the registration status of hotkeys, and initiating the miner processes with the necessary environment variables.
 
 ## Hotkey Naming Structure
 

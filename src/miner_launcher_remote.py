@@ -46,13 +46,19 @@ def read_ssh_details():
 
 import time  # Ensure this import is at the top of your script
 
-def start_remote_miner(ip_address, username, key_path, pm2_command, hotkey_name):
+
+def start_remote_miner(ip_address, username, key_path, pm2_command, hotkey_name, port):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     expanded_key_path = os.path.expanduser(key_path)
 
     try:
         ssh.connect(ip_address, username=username, key_filename=expanded_key_path)
+
+        # Open the port in the firewall
+        firewall_command = f"sudo ufw allow {port}"
+        ssh.exec_command(firewall_command)
+        logging.info(f"Opened port {port} in firewall")
 
         # Load environment variables before executing the PM2 start command
         load_env_command = "source ~/.bashrc && "  # Assuming the environment variables are set in .bashrc
@@ -70,17 +76,14 @@ def start_remote_miner(ip_address, username, key_path, pm2_command, hotkey_name)
     except Exception as e:
         logging.error(f"SSH connection error: {e}")
     finally:
-        ssh.close()
+        if ssh:
+            ssh.close()
+
+# Example usage
+# start_remote_miner("12.34.56.78", "username", "/path/to/key", ["pm2", "start", "miner.py", "--name", "miner"], "miner", 9001)
 
 
-
-
-# sniper process occurs locally, so we need to use the local pm2 to stop it, or call in the 'stop_sniper_process' function from miner_launcher.py
-#def stop_remote_sniper_process(ip_address, username, key_path, pm2_name):
-#    stop_command = ['pm2', 'delete', pm2_name]
-#    start_remote_miner(ip_address, username, key_path, stop_command)
-################################################################################################################################################
-
+        
 def auto_miner_launcher_remote(bt_endpoint):
     logging.info("Remote Auto Miner Launcher started.")
     templates = read_templates()

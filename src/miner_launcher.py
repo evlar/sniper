@@ -42,12 +42,13 @@ def get_available_port(hotkey_name):
     miner_number = int(miner_number)
     return 9000 + (miner_number - 1)
     
+
 def construct_pm2_command(wallet_name, hotkey_name, axon_port, templates, local=True):
     subnet_number = hotkey_name.split('_')[0][1:]
     subnet_template = templates.get(f"subnet{subnet_number}")
 
     if subnet_template:
-        # Get the path to miner and expand it if necessary
+        # Get the path to the miner and expand it if necessary
         path_to_miner = subnet_template["path_to_miner"]
         if local:
             if path_to_miner.startswith("~/"):
@@ -55,38 +56,41 @@ def construct_pm2_command(wallet_name, hotkey_name, axon_port, templates, local=
             elif not os.path.isabs(path_to_miner):
                 script_dir = os.path.dirname(os.path.dirname(__file__))
                 path_to_miner = os.path.join(script_dir, path_to_miner)
+        else:
+            # For remote environment, the path is assumed to be correct as is
+            pass
 
-        # Construct environment variable part of the command
-        api_keys = subnet_template.get("api_keys", {})
-        env_vars = ' '.join(f'{key}={value}' for key, value in api_keys.items())
-        
-        # Start building the command
+        # Build the command
         command = [
-            env_vars,
             'pm2', 'start', path_to_miner, '--name', f"{hotkey_name}_miner",
-            '--interpreter', 'python3', '--',
+            '--interpreter', 'python3', '--'
+        ]
+
+        # Add environment variables
+        env_vars = subnet_template.get("api_keys", {})
+        env_command = ["--env " + key + "=" + value for key, value in env_vars.items()]
+        command += env_command
+
+        # Add additional parameters
+        additional_params = subnet_template.get("additional_params", {})
+        for param, value in additional_params.items():
+            command.extend([f"--{param}", value])
+
+        # Add logging debug if applicable
+        if subnet_template.get("logging_debug", False):
+            command.append('--logging.debug')
+
+        # Add the wallet and hotkey details
+        command += [
             '--netuid', subnet_number, '--subtensor.network', 'local',
             '--wallet.name', wallet_name, '--wallet.hotkey', hotkey_name,
             '--axon.port', str(axon_port)
         ]
 
-        # Add additional parameters from the template
-        additional_params = subnet_template.get("additional_params", {})
-        for param, value in additional_params.items():
-            command.extend([f"--{param}", value])
-
-        # Add logging debug if applicable at the end
-        if subnet_template.get("logging_debug", False):
-            command.append('--logging.debug')
-
-        return command
+        return command, env_vars
     else:
         logging.error(f"Template for subnet{subnet_number} not found.")
-        return []
-
-
-
-
+        return [], {}
 
 
 
@@ -123,12 +127,20 @@ def start_mining_for_hotkey(pm2_command, hotkey_name):
         logging.info(f"Restarted mining for hotkey: {hotkey_name} with --update-env")
 '''
 
-def start_mining_for_hotkey(pm2_command, hotkey_name):
-    if pm2_command:
-        # Start the PM2 process with the command that includes environment variables
-        subprocess.run(pm2_command, shell=True)
-        logging.info(f"Started mining for hotkey: {hotkey_name} on port {pm2_command[-1]}")
+def allow_port_through_firewall(port):
+    try:
+        subprocess.run(["sudo", "ufw", "allow", str(port)], check=True)
+        print(f"Port {port} allowed through firewall.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error allowing port {port} through firewall: {e}")
 
+def start_mining_for_hotkey(pm2_command, hotkey_name, port):
+    # Allow port through firewall
+    allow_port_through_firewall(port)
+
+    # Start the PM2 process with the command that includes environment variables
+    subprocess.run(pm2_command, shell=True)
+    print(f"Started mining for hotkey: {hotkey_name} on port {port}")
 
 # Helper functions
 def read_templates():
