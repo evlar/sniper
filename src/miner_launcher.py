@@ -49,21 +49,20 @@ def construct_pm2_command(wallet_name, hotkey_name, axon_port, templates, local=
     if subnet_template:
         # Get the path to miner and expand it if necessary
         path_to_miner = subnet_template["path_to_miner"]
-        
         if local:
-            # Resolve path for local environment
             if path_to_miner.startswith("~/"):
                 path_to_miner = os.path.expanduser(path_to_miner)
             elif not os.path.isabs(path_to_miner):
                 script_dir = os.path.dirname(os.path.dirname(__file__))
                 path_to_miner = os.path.join(script_dir, path_to_miner)
-        else:
-            # For remote environment, assume the path is correct as is or needs special handling
-            # Specific logic for remote path resolution (if needed) goes here
-            pass  # Placeholder for potential future logic
 
+        # Construct environment variable part of the command
+        api_keys = subnet_template.get("api_keys", {})
+        env_vars = ' '.join(f'{key}={value}' for key, value in api_keys.items())
+        
         # Start building the command
         command = [
+            env_vars,
             'pm2', 'start', path_to_miner, '--name', f"{hotkey_name}_miner",
             '--interpreter', 'python3', '--',
             '--netuid', subnet_number, '--subtensor.network', 'local',
@@ -84,6 +83,8 @@ def construct_pm2_command(wallet_name, hotkey_name, axon_port, templates, local=
     else:
         logging.error(f"Template for subnet{subnet_number} not found.")
         return []
+
+
 
 
 

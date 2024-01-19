@@ -213,23 +213,34 @@ def read_templates():
 def save_pm2_command_template():
     subnet = input("Enter the subnet number: ")
     path_to_miner = input("Enter the full path to the miner.py for this subnet: ")
-    logging_debug = input("Is logging.debug enabled for this subnet? (yes/no): ").lower() == 'yes'
+    
+    # Prompt for API keys
+    api_keys = {}
+    while True:
+        api_key_name = input("Enter the environment variable name for the API key (or 'done' to finish API keys): ")
+        if api_key_name.lower() == 'done':
+            break
+        api_key_value = input(f"Enter the API key for {api_key_name}: ")
+        api_keys[api_key_name] = api_key_value
 
     # Prompt for additional parameters
     additional_params = {}
     while True:
-        param_name = input("Enter additional parameter name (or 'done' to finish): ")
+        param_name = input("Enter additional parameter name (or 'done' to finish additional parameters): ")
         if param_name.lower() == 'done':
             break
         param_value = input(f"Enter value for {param_name}: ")
         additional_params[param_name] = param_value
 
-    # Save the template with additional parameters
+    logging_debug = input("Is logging.debug enabled for this subnet? (yes/no): ").lower() == 'yes'
+
+    # Save the template with path, API keys, additional parameters, and logging option
     templates = read_templates()
     templates[f"subnet{subnet}"] = {
         "path_to_miner": path_to_miner,
-        "logging_debug": logging_debug,
-        "additional_params": additional_params
+        "api_keys": api_keys,
+        "additional_params": additional_params,
+        "logging_debug": logging_debug
     }
     save_templates(templates)
 

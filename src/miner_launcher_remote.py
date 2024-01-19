@@ -73,6 +73,8 @@ def start_remote_miner(ip_address, username, key_path, pm2_command, hotkey_name)
         ssh.close()
 
 
+
+
 # sniper process occurs locally, so we need to use the local pm2 to stop it, or call in the 'stop_sniper_process' function from miner_launcher.py
 #def stop_remote_sniper_process(ip_address, username, key_path, pm2_name):
 #    stop_command = ['pm2', 'delete', pm2_name]
