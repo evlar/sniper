@@ -101,22 +101,40 @@ def stop_sniper_process(pm2_name):
 #        logging.info(f"Started mining for hotkey: {pm2_command[6].split('_')[0]} on port {pm2_command[-1]}")
 
 
-def start_mining_for_hotkey(pm2_command):
+'''
+def start_mining_for_hotkey(pm2_command, hotkey_name):
     if pm2_command:
-        # Start the PM2 process
-        subprocess.run(pm2_command)
-        hotkey = pm2_command[6].split('_')[0]  # Assuming hotkey name is the 7th element in the command
-        port = pm2_command[-1]  # Assuming port number is the last element in the command
-        logging.info(f"Started mining for hotkey: {hotkey} on port {port}")
+        # Load environment variables before executing the PM2 start command
+        # Assuming the environment variables are set in .bashrc or a similar file
+        load_env_command = ["source", "~/.bashrc", "&&"]
+        full_command = load_env_command + pm2_command
+
+        # Start the PM2 process with environment variables loaded
+        subprocess.run(' '.join(full_command), shell=True)
+        logging.info(f"Started mining for hotkey: {hotkey_name} on port {pm2_command[-1]}")
 
         # Wait for 30 seconds before restarting
         time.sleep(30)
 
         # Restart the same process with --update-env
-        restart_command = ['pm2', 'restart', f"{hotkey}_miner", '--update-env']
+        restart_command = ['pm2', 'restart', f"{hotkey_name}_miner", '--update-env']
         subprocess.run(restart_command)
-        logging.info(f"Restarted mining for hotkey: {hotkey} with --update-env on port {port}")
+        logging.info(f"Restarted mining for hotkey: {hotkey_name} with --update-env")
+'''
 
+def start_mining_for_hotkey(pm2_command, hotkey_name):
+    if pm2_command:
+        # Start the PM2 process
+        subprocess.run(pm2_command)
+        logging.info(f"Started mining for hotkey: {hotkey_name} on port {pm2_command[-1]}")
+
+        # Wait for 30 seconds before restarting
+        time.sleep(30)
+
+        # Restart the same process with --update-env
+        restart_command = f'pm2 restart {hotkey_name}_miner --update-env'
+        subprocess.run(restart_command, shell=True)
+        logging.info(f"Restarted mining for hotkey: {hotkey_name} with --update-env")
 
 
 # Helper functions

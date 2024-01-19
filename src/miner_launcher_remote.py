@@ -5,6 +5,7 @@ import os
 import time
 import json
 import logging
+import subprocess
 import paramiko
 from .miner_launcher import (
     read_templates, read_sniper_log, update_sniper_process_status, 
@@ -53,20 +54,18 @@ def start_remote_miner(ip_address, username, key_path, pm2_command, hotkey_name)
     try:
         ssh.connect(ip_address, username=username, key_filename=expanded_key_path)
 
-        # Execute the PM2 start command
-        stdout, stderr = ssh.exec_command(' '.join(pm2_command))[:2]
-        logging.info(stdout.read().decode())
-        logging.error(stderr.read().decode())
-
+        # Load environment variables before executing the PM2 start command
+        load_env_command = "source ~/.bashrc && "  # Assuming the environment variables are set in .bashrc
+        start_command = ' '.join(pm2_command)
+        full_command = load_env_command + start_command
+        ssh.exec_command(full_command)
+        
         # Wait for 30 seconds before restarting
         time.sleep(30)
 
-        # Construct the PM2 restart command with --update-env
+        # Restart with --update-env might not be needed now, but keeping it as a fallback
         restart_command = f'pm2 restart {hotkey_name}_miner --update-env'
-        stdout, stderr = ssh.exec_command(restart_command)[:2]
-        logging.info(f"Restarting {hotkey_name}_miner with --update-env")
-        logging.info(stdout.read().decode())
-        logging.error(stderr.read().decode())
+        ssh.exec_command(restart_command)
 
     except Exception as e:
         logging.error(f"SSH connection error: {e}")
