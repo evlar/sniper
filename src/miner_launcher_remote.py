@@ -80,17 +80,13 @@ def start_remote_miner(ip_address, username, key_path, pm2_command, hotkey_name,
             ssh.close()
 '''
 
-def start_remote_miner(ip_address, username, key_path, pm2_command, axon_port):
+def start_remote_miner(ip_address, username, key_path, pm2_command):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     expanded_key_path = os.path.expanduser(key_path)
 
     try:
         ssh.connect(ip_address, username=username, key_filename=expanded_key_path)
-
-        # Command to add a UFW rule for the axon port
-        ufw_command = f'sudo ufw allow {axon_port}'
-        ssh.exec_command(ufw_command)
 
         # Execute the PM2 command (environment variables included)
         full_command = ' '.join(pm2_command)
@@ -102,8 +98,6 @@ def start_remote_miner(ip_address, username, key_path, pm2_command, axon_port):
         logging.error(f"SSH connection error: {e}")
     finally:
         ssh.close()
-
-
 
 
         
