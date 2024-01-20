@@ -46,7 +46,7 @@ def read_ssh_details():
 
 import time  # Ensure this import is at the top of your script
 
-
+''''
 def start_remote_miner(ip_address, username, key_path, pm2_command, hotkey_name, port):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -78,9 +78,32 @@ def start_remote_miner(ip_address, username, key_path, pm2_command, hotkey_name,
     finally:
         if ssh:
             ssh.close()
+'''
 
-# Example usage
-# start_remote_miner("12.34.56.78", "username", "/path/to/key", ["pm2", "start", "miner.py", "--name", "miner"], "miner", 9001)
+def start_remote_miner(ip_address, username, key_path, pm2_command, axon_port):
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    expanded_key_path = os.path.expanduser(key_path)
+
+    try:
+        ssh.connect(ip_address, username=username, key_filename=expanded_key_path)
+
+        # Command to add a UFW rule for the axon port
+        ufw_command = f'sudo ufw allow {axon_port}'
+        ssh.exec_command(ufw_command)
+
+        # Execute the PM2 command (environment variables included)
+        full_command = ' '.join(pm2_command)
+        stdin, stdout, stderr = ssh.exec_command(full_command)
+        logging.info(stdout.read().decode())
+        logging.error(stderr.read().decode())
+
+    except Exception as e:
+        logging.error(f"SSH connection error: {e}")
+    finally:
+        ssh.close()
+
+
 
 
         
