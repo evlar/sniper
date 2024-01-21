@@ -12,7 +12,7 @@ from .miner_launcher import (
     get_available_port, get_hotkey_address, is_hotkey_registered,
     construct_pm2_command, stop_sniper_process
 )
-
+from .open_axon_ports import (get_pm2_list, extract_axon_ports, open_ports_on_remote)
 # Assuming miner_launcher.py is in the same directory
 # If not, adjust the import path accordingly
 
@@ -33,7 +33,6 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
-
 
 # Constants
 CHECK_INTERVAL = 300  # 5 minutes
@@ -140,6 +139,12 @@ def auto_miner_launcher_remote(bt_endpoint):
                             start_remote_miner(ssh_info['ip_address'], ssh_info['username'], ssh_info['key_path'], pm2_command, hotkey_name)
                             stop_sniper_process(pm2_name)
                             update_sniper_process_status(pm2_name, "stopped")
+
+                            # Open axon ports
+                            pm2_list = get_pm2_list(ssh_info)
+                            axon_ports = extract_axon_ports(pm2_list)
+                            open_ports_on_remote(ssh_info, axon_ports)
+
                         else:
                             logging.warning(f"No SSH details found for {subnet}. Cannot start remote miner.")
                     else:
