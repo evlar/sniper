@@ -17,19 +17,19 @@ from .open_axon_ports import (get_pm2_list, extract_axon_ports, open_ports_on_re
 # If not, adjust the import path accordingly
 
 # Path for the log file
-script_dir = os.path.dirname(os.path.dirname(__file__))
-log_file_path = os.path.join(script_dir, 'logs', 'auto_miner_launcher_remote.log')
+# script_dir = os.path.dirname(os.path.dirname(__file__))
+# log_file_path = os.path.join(script_dir, 'logs', 'auto_miner_launcher_remote.log')
 SSH_DETAILS_FILE = os.path.join(os.path.dirname(__file__), '..', 'data', 'ssh_details.json')
 
 # Ensure the log directory exists
-os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+# os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(log_file_path),
+        #logging.FileHandler(log_file_path),
         logging.StreamHandler()
     ]
 )
