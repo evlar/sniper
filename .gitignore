@@ -10,3 +10,4 @@ resources/multi_auto_miner.sh
 resources/sniper_monitor.sh
 resources/sniper.py
 isregistered.py
+.cursorignore

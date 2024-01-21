@@ -45,39 +45,7 @@ def read_ssh_details():
 
 import time  # Ensure this import is at the top of your script
 
-''''
-def start_remote_miner(ip_address, username, key_path, pm2_command, hotkey_name, port):
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    expanded_key_path = os.path.expanduser(key_path)
 
-    try:
-        ssh.connect(ip_address, username=username, key_filename=expanded_key_path)
-
-        # Open the port in the firewall
-        firewall_command = f"sudo ufw allow {port}"
-        ssh.exec_command(firewall_command)
-        logging.info(f"Opened port {port} in firewall")
-
-        # Load environment variables before executing the PM2 start command
-        load_env_command = "source ~/.bashrc && "  # Assuming the environment variables are set in .bashrc
-        start_command = ' '.join(pm2_command)
-        full_command = load_env_command + start_command
-        ssh.exec_command(full_command)
-        
-        # Wait for 30 seconds before restarting
-        time.sleep(30)
-
-        # Restart with --update-env might not be needed now, but keeping it as a fallback
-        restart_command = f'pm2 restart {hotkey_name}_miner --update-env'
-        ssh.exec_command(restart_command)
-
-    except Exception as e:
-        logging.error(f"SSH connection error: {e}")
-    finally:
-        if ssh:
-            ssh.close()
-'''
 
 def start_remote_miner(ip_address, username, key_path, pm2_command):
     ssh = paramiko.SSHClient()
@@ -93,6 +61,9 @@ def start_remote_miner(ip_address, username, key_path, pm2_command):
         logging.info(stdout.read().decode())
         logging.error(stderr.read().decode())
 
+        # Execute 'pm2 save' command
+        subprocess.run(['pm2', 'save'])
+
     except Exception as e:
         logging.error(f"SSH connection error: {e}")
     finally:
@@ -100,6 +71,8 @@ def start_remote_miner(ip_address, username, key_path, pm2_command):
 
 
         
+import traceback
+
 def auto_miner_launcher_remote(bt_endpoint):
     logging.info("Remote Auto Miner Launcher started.")
     templates = read_templates()
@@ -111,48 +84,51 @@ def auto_miner_launcher_remote(bt_endpoint):
         subtensor = bt.subtensor(config=config, network=bt_endpoint)
     except Exception as e:
         logging.error(f"Failed to connect to the Subtensor: {e}")
+        logging.debug(traceback.format_exc())  # Log the full traceback
         return  # Exit the function if unable to connect
 
     while True:
-        sniper_processes = read_sniper_log()
-        logging.debug(f"Read {len(sniper_processes)} sniper processes from log.")
+        try:
+            sniper_processes = read_sniper_log()
+            logging.debug(f"Read {len(sniper_processes)} sniper processes from log.")
 
-        for pm2_name, details in sniper_processes:
-            logging.debug(f"Processing PM2 process: {pm2_name} with details: {details}")
+            for pm2_name, details in sniper_processes:
+                logging.debug(f"Processing PM2 process: {pm2_name} with details: {details}")
 
-            if details['status'] == 'active' and details['endpoint'] == bt_endpoint:
-                hotkey_name = details['hotkey_name']
-                wallet_name = details['wallet_name']
-                netuid = details['netuid']
-                axon_port = get_available_port(hotkey_name)
+                if details['status'] == 'active' and details['endpoint'] == bt_endpoint:
+                    hotkey_name = details['hotkey_name']
+                    wallet_name = details['wallet_name']
+                    netuid = details['netuid']
+                    axon_port = get_available_port(hotkey_name)
 
-                hotkey_address = get_hotkey_address(wallet_name, hotkey_name)
-                if is_hotkey_registered(subtensor, hotkey_address, netuid):
-                    # Construct the PM2 command with local=False for remote execution
-                    pm2_command = construct_pm2_command(wallet_name, hotkey_name, axon_port, templates, local=False)
+                    hotkey_address = get_hotkey_address(wallet_name, hotkey_name)
+                    if is_hotkey_registered(subtensor, hotkey_address, netuid):
+                        # Construct the PM2 command with local=False for remote execution
+                        pm2_command = construct_pm2_command(wallet_name, hotkey_name, axon_port, templates, local=False)
 
-                    if pm2_command:
-                        subnet = f"subnet{netuid}"
-                        if subnet in ssh_details:
-                            ssh_info = ssh_details[subnet]
-                            logging.info(f"Executing remote PM2 command: {' '.join(pm2_command)}")
-                            start_remote_miner(ssh_info['ip_address'], ssh_info['username'], ssh_info['key_path'], pm2_command, hotkey_name)
-                            stop_sniper_process(pm2_name)
-                            update_sniper_process_status(pm2_name, "stopped")
+                        if pm2_command:
+                            subnet = f"subnet{netuid}"
+                            if subnet in ssh_details:
+                                ssh_info = ssh_details[subnet]
+                                logging.info(f"Executing remote PM2 command: {' '.join(pm2_command)}")
+                                start_remote_miner(ssh_info['ip_address'], ssh_info['username'], ssh_info['key_path'], pm2_command)
+                                stop_sniper_process(pm2_name)
+                                update_sniper_process_status(pm2_name, "stopped")
 
-                            # Open axon ports
-                            pm2_list = get_pm2_list(ssh_info)
-                            axon_ports = extract_axon_ports(pm2_list)
-                            open_ports_on_remote(ssh_info, axon_ports)
+                                # Open axon ports
+                                pm2_list = get_pm2_list(ssh_info)
+                                axon_ports = extract_axon_ports(pm2_list)
+                                open_ports_on_remote(ssh_info, axon_ports)
 
+                            else:
+                                logging.warning(f"No SSH details found for {subnet}. Cannot start remote miner.")
                         else:
-                            logging.warning(f"No SSH details found for {subnet}. Cannot start remote miner.")
+                            logging.warning(f"PM2 command not generated for {hotkey_name}.")
                     else:
-                        logging.warning(f"PM2 command not generated for {hotkey_name}.")
-                else:
-                    logging.info(f"Hotkey {hotkey_name} is not yet registered. Skipping.")
-            else:
-                logging.debug(f"Skipping inactive or unrelated process: {pm2_name}")
+                        logging.info(f"Hotkey {hotkey_name} is not yet registered. Skipping.")
+        except Exception as e:
+            logging.error(f"Error in main loop: {e}")
+            logging.debug(traceback.format_exc())  # Log the full traceback
 
         # Wait before the next check
         time.sleep(CHECK_INTERVAL)
