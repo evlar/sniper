@@ -313,6 +313,10 @@ def save_ssh_details():
 
     print(f"SSH details saved for subnet {subnet}.")
 
+def open_axon_ports():
+    script_path = os.path.join(os.path.dirname(__file__), 'open_axon_ports.py')
+    subprocess.run(['python3', script_path])
+    print("open_axon_ports.py has been executed.")
 
 def main_menu():
     while True:
@@ -328,7 +332,8 @@ def main_menu():
 
         print("5. Auto Miner Launcher (remotely) \033[93m Launches miners on relevant remote VPS provided that your SSH key path has been set\033[0m")
         print("6. Clear Logs")
-        print("7. Exit")
+        print("7. Open Axon Ports with PM2")
+        print("8. Exit")
 
         choice = input("Enter the number of your choice: ")
 
@@ -352,8 +357,10 @@ def main_menu():
                 clear_all_logs()
             else:
                 print("Log deletion cancelled.")
-        elif choice == '7':
-            print("Exiting program.")
+        elif choice == "7":
+            open_axon_ports()
+        elif choice == "8":
+            print("Exiting...")
             break
         else:
             print("Invalid choice. Please enter a number from 1 to 5.")
