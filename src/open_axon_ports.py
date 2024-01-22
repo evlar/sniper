@@ -45,7 +45,7 @@ def extract_axon_ports(pm2_list):
 
 def open_ports_on_remote(server_details, ports):
     for port in ports:
-        ssh_command(server_details, f"sudo ufw allow {port}")
+        ssh_command(server_details, f"sudo ufw allow {port}/tcp")
 
 def main():
     ssh_details = get_ssh_details()
