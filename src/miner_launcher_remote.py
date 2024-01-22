@@ -73,10 +73,27 @@ def start_remote_miner(ip_address, username, key_path, pm2_command):
         
 import traceback
 
-def auto_miner_launcher_remote(bt_endpoint):
+def auto_miner_launcher_remote(bt_endpoint, server_name=None):
     logging.info("Remote Auto Miner Launcher started.")
     templates = read_templates()
     ssh_details = read_ssh_details()
+
+    # Extract subnet number from endpoint
+    subnet = bt_endpoint.split('subnet')[-1]
+
+    # If server_name is not provided, prompt the user to select one
+    if server_name is None and len(ssh_details.get(f"subnet{subnet}", [])) > 1:
+        print(f"Multiple servers found for subnet {subnet}:")
+        for i, server in enumerate(ssh_details[f"subnet{subnet}"], start=1):
+            print(f"{i}. {server['server_name']}")
+        server_choice = input("Select the server number to use: ")
+        server_name = ssh_details[f"subnet{subnet}"][int(server_choice) - 1]['server_name']
+
+    # Find the server details by server_name
+    server_details = next((server for server in ssh_details.get(subnet, []) if server['server_name'] == server_name), None)
+    if not server_details:
+        logging.error(f"No server details found for server {server_name} on subnet {subnet}.")
+        return
 
     # Create a Subtensor instance
     config = bt.subtensor.config()
@@ -107,21 +124,16 @@ def auto_miner_launcher_remote(bt_endpoint):
                         pm2_command = construct_pm2_command(wallet_name, hotkey_name, axon_port, templates, local=False)
 
                         if pm2_command:
-                            subnet = f"subnet{netuid}"
-                            if subnet in ssh_details:
-                                ssh_info = ssh_details[subnet]
-                                logging.info(f"Executing remote PM2 command: {' '.join(pm2_command)}")
-                                start_remote_miner(ssh_info['ip_address'], ssh_info['username'], ssh_info['key_path'], pm2_command)
-                                stop_sniper_process(pm2_name)
-                                update_sniper_process_status(pm2_name, "stopped")
+                            logging.info(f"Executing remote PM2 command: {' '.join(pm2_command)}")
+                            start_remote_miner(server_details['ip_address'], server_details['username'], server_details['key_path'], pm2_command)
+                            stop_sniper_process(pm2_name)
+                            update_sniper_process_status(pm2_name, "stopped")
 
-                                # Open axon ports
-                                pm2_list = get_pm2_list(ssh_info)
-                                axon_ports = extract_axon_ports(pm2_list)
-                                open_ports_on_remote(ssh_info, axon_ports)
+                            # Open axon ports
+                            pm2_list = get_pm2_list(server_details)
+                            axon_ports = extract_axon_ports(pm2_list)
+                            open_ports_on_remote(server_details, axon_ports)
 
-                            else:
-                                logging.warning(f"No SSH details found for {subnet}. Cannot start remote miner.")
                         else:
                             logging.warning(f"PM2 command not generated for {hotkey_name}.")
                     else:
