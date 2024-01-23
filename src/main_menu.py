@@ -325,7 +325,7 @@ def main_menu():
         print("\033[93mExample: s8_1, s8_2, s8_3, etc.\033[0m")
         print("\033[93mNote: Ensure consitant wallet.name across all machines\033[0m")
         print("\nMain Menu:")
-        print("1. Save PM2 Launch Command Templates for Each Subnet before using Auto Miner Launcher")
+        print("1. PM2 Launch Command and Environment Variable Configuration:")
         print("2. Save SSH key path for remote miner launching")
         print("3. Registration Sniper \033[93m Run for each subnet you plan to register on prior to running Auto Miner\033[0m")
         print("4. Auto Miner Launcher (locally) \033[91m Not working on a Contabo VPS\033[0m")

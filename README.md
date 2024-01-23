@@ -32,10 +32,14 @@ To set up the "registration_sniper" project, follow these steps:
    This will launch the main menu, providing options to manage registration snipers and auto miner launchers.
 
 2. **Main Menu Options**:
-   - Registration Sniper: Manage registration processes based on current fee thresholds.
-   - Auto Miner Launcher (Local): Start miners automatically for registered hotkeys on the local machine, including environment variable configuration.
-   - Auto Miner Launcher (Remote): Launch miner processes on remote machines for registered hotkeys, with environment variable support.
-   - Save PM2 Command Templates: Configure PM2 command templates for different subnets, including API keys and other environment variables.
+   1. `PM2 Launch Command and Environment Variable Configuration:` This option allows the user to save command templates including environment variables for launching miners on different subnets using PM2.
+   2. `Save SSH key path for remote miner launching:` This option is for saving SSH details for remote miner launching.
+   3. `Registration Sniper:` This option runs a registration sniper process for registering on a specified subnet.
+   4. `Auto Miner Launcher (locally):` This starts the auto miner launcher locally.
+   5. `Auto Miner Launcher (remotely):` This starts the auto miner launcher on a remote server.
+   6. `Clear Logs:` This option clears all log files in the 'logs' directory.
+   7. `Open Axon Ports with PM2:` This executes a script to open Axon ports using PM2.
+   8. `Exit:` This option exits the main menu and the program.
 
 ## Remote Miner Launcher
 
