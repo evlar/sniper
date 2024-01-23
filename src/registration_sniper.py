@@ -70,7 +70,7 @@ wallet = bt.wallet(config.name, config.hotkey, config.path)
 subtensor = bt.subtensor(config.chain_endpoint)
 logger.info(f"Wallet: {wallet}")
 logger.info(f"Subtensor: {subtensor}")
-
+...
 # Registration loop
 while True:
     try:
@@ -78,7 +78,7 @@ while True:
         current_cost = subtensor.burn(config.netuid)
         logger.info("Current cost: %s", current_cost.tao)
         
-# Check if the current cost is below the threshold
+        # Check if the current cost is below the threshold
         if current_cost.tao < registration_fee_threshold:
             logger.info(
                 "Current registration fee below threshold. Attempting to register..."
@@ -122,6 +122,15 @@ except Exception as e:
             output = child.before.decode()
             logger.info(output)  # Print the output from the command
 
+            # Additional check to confirm the fee is still below the threshold
+            current_cost = subtensor.burn(config.netuid)
+            if current_cost.tao >= registration_fee_threshold:
+                logger.info(
+                    "Registration fee increased above threshold after initiating registration."
+                )
+                sleep(SLEEP_TIME_SHORT)
+                continue  # Skip the rest of the loop and start over
+
             # Check if the neuron was successfully registered
             if "Registered" in output:  # Modified check as per suggestion
                 logger.info("Neuron registered.")
@@ -136,4 +145,4 @@ except Exception as e:
     except Exception as e:
         logger.exception(f"An error occurred: {e}")
         sleep(SLEEP_TIME_SHORT)
-
+...
