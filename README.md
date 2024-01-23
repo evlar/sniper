@@ -47,7 +47,7 @@ The remote miner launcher feature extends the auto miner launcher functionality 
 
 To use this feature:
 
-- Configure SSH details for the remote servers in `data/ssh_details.json`.
+- Configure SSH details for the remote servers in `data/ssh_details.json` through option 2 of the main menu.
 - Use the main menu to launch miners remotely, specifying the desired subtensor endpoint and environment variables.
 - The system will handle the process of connecting to the remote server, validating the registration status of hotkeys, and initiating the miner processes with the necessary environment variables.
 
@@ -62,26 +62,3 @@ For the "registration_sniper" system to function correctly, it's essential to ad
 Example hotkey names: `s8_1`, `s8_2`, `s19_1`, etc.
 
 This naming structure is crucial for the system to correctly identify and manage different hotkeys, especially when launching and monitoring miner processes.
-
-## Project Structure
-
-- `src/`: Contains the core Python modules.
-- `data/`: Stores JSON configuration files like subtensor endpoints, miner PM2 templates, and SSH details for remote servers.
-- `logs/`: Log files for different processes.
-- `run.py`: Entry point for running the main menu.
-- `requirements.txt`: Lists the Python dependencies.
-
-## Contributing
-
-Contributions to "registration_sniper" are welcome. Please adhere to the following guidelines:
-
-1. Fork the repository and create your branch from `main`.
-2. Write clear and concise commit messages.
-3. Ensure your code adheres to the project's style and requirements.
-4. Create a pull request.
-
-For any substantial changes, please open an issue first to discuss what you would like to change.
-
-## License
-
-Please make sure to update the license as appropriate for your project.
