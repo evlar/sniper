@@ -416,15 +416,15 @@ def main_menu():
         print("\033[93mExample: s8_1, s8_2, s8_3, etc.\033[0m")
         print("\033[93mNote: Ensure consitant wallet.name across all machines\033[0m")
         print("\nMain Menu:")
-        print("1. Save PM2 Launch Command Templates for Each Subnet before using Auto Miner Launcher")
+        print("1. PM2 Launch Command and Environment Variable Configuration:")
         print("2. Save SSH key path for remote miner launching")
         print("\033[92m3. Registration Sniper \033[93m Run for each subnet you plan to register on prior to running Auto Miner\033[0m")
        # print("4. Auto Miner Launcher (locally) \033[91m Not working on a Contabo VPS\033[0m")
 
         print("\033[92m4. Auto Miner Launcher (remotely) \033[0m \033[93m Launches miners on relevant remote VPS provided that your SSH key path has been set\033[0m")
         print("5. Clear Logs")
-        print("6. Open Axon Ports with PM2")
-        print("7. Exit")
+        #print("6. Open Axon Ports with PM2")
+        print("6. Exit")
 
         choice = input("Enter the number of your choice: ")
 
@@ -448,9 +448,9 @@ def main_menu():
                 clear_all_logs()
             else:
                 print("Log deletion cancelled.")
-        elif choice == "6":
+       # elif choice == "6":
             open_axon_ports()
-        elif choice == "7":
+        elif choice == "6":
             print("Exiting...")
             break
         else:

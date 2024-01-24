@@ -32,10 +32,14 @@ To set up the "registration_sniper" project, follow these steps:
    This will launch the main menu, providing options to manage registration snipers and auto miner launchers.
 
 2. **Main Menu Options**:
-   - Registration Sniper: Manage registration processes based on current fee thresholds.
-   - Auto Miner Launcher (Local): Start miners automatically for registered hotkeys on the local machine, including environment variable configuration.
-   - Auto Miner Launcher (Remote): Launch miner processes on remote machines for registered hotkeys, with environment variable support.
-   - Save PM2 Command Templates: Configure PM2 command templates for different subnets, including API keys and other environment variables.
+   1. `PM2 Launch Command and Environment Variable Configuration:` This option allows the user to save command templates including environment variables for launching miners on different subnets using PM2.
+   2. `Save SSH key path for remote miner launching:` This option is for saving SSH details for remote miner launching.
+   3. `Registration Sniper:` This option runs a registration sniper process for registering on a specified subnet.
+   4. `Auto Miner Launcher (locally):` This starts the auto miner launcher locally.
+   5. `Auto Miner Launcher (remotely):` This starts the auto miner launcher on a remote server.
+   6. `Clear Logs:` This option clears all log files in the 'logs' directory.
+   7. `Open Axon Ports with PM2:` This executes a script to open Axon ports using PM2.
+   8. `Exit:` This option exits the main menu and the program.
 
 ## Remote Miner Launcher
 
@@ -43,7 +47,7 @@ The remote miner launcher feature extends the auto miner launcher functionality 
 
 To use this feature:
 
-- Configure SSH details for the remote servers in `data/ssh_details.json`.
+- Configure SSH details for the remote servers in `data/ssh_details.json` through option 2 of the main menu.
 - Use the main menu to launch miners remotely, specifying the desired subtensor endpoint and environment variables.
 - The system will handle the process of connecting to the remote server, validating the registration status of hotkeys, and initiating the miner processes with the necessary environment variables.
 
@@ -58,26 +62,3 @@ For the "registration_sniper" system to function correctly, it's essential to ad
 Example hotkey names: `s8_1`, `s8_2`, `s19_1`, etc.
 
 This naming structure is crucial for the system to correctly identify and manage different hotkeys, especially when launching and monitoring miner processes.
-
-## Project Structure
-
-- `src/`: Contains the core Python modules.
-- `data/`: Stores JSON configuration files like subtensor endpoints, miner PM2 templates, and SSH details for remote servers.
-- `logs/`: Log files for different processes.
-- `run.py`: Entry point for running the main menu.
-- `requirements.txt`: Lists the Python dependencies.
-
-## Contributing
-
-Contributions to "registration_sniper" are welcome. Please adhere to the following guidelines:
-
-1. Fork the repository and create your branch from `main`.
-2. Write clear and concise commit messages.
-3. Ensure your code adheres to the project's style and requirements.
-4. Create a pull request.
-
-For any substantial changes, please open an issue first to discuss what you would like to change.
-
-## License
-
-Please make sure to update the license as appropriate for your project.
