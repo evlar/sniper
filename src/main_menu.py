@@ -4,7 +4,7 @@ import shutil
 import os
 import json
 from getpass import getpass
-from miner_launcher import auto_miner_launcher
+from miner_launcher import read_sniper_log
 #from miner_launcher_remote import start_auto_miner_launcher_remote
 
 
@@ -251,6 +251,7 @@ def start_auto_miner_launcher():
     subprocess.run(['pm2', 'start', launcher_script_path, '--interpreter', 'python3', '--name', 'auto_miner_launcher', '--', '--endpoint', bt_endpoint])
     print("Auto Miner Launcher started as PM2 process.")
 
+'''
 def start_auto_miner_launcher_remote():
     bt_endpoint = choose_subtensor_endpoint()  # Get the subtensor endpoint
     ssh_details = read_ssh_details()
@@ -268,7 +269,84 @@ def start_auto_miner_launcher_remote():
     launcher_script_path = os.path.join(os.path.dirname(__file__), '..', 'launch_auto_miner_remote.py')
     subprocess.run(['pm2', 'start', launcher_script_path, '--interpreter', 'python3', '--name', 'auto_miner_launcher_remote', '--', '--endpoint', bt_endpoint, '--server-name', selected_server['server_name']])
     print(f"Remote Auto Miner Launcher started for server {selected_server['server_name']} on subnet {subnet}.")
+    '''
+'''
+def start_auto_miner_launcher_remote():
+    bt_endpoint = choose_subtensor_endpoint()  # Get the subtensor endpoint
+    ssh_details = read_ssh_details()
+    subnet = 
+    selected_server = None
+    if len(ssh_details.get(f"subnet{subnet}", [])) > 1:
+        print(f"Multiple servers found for subnet {subnet}:")
+        for i, server in enumerate(ssh_details[f"subnet{subnet}"], start=1):
+            print(f"{i}. {server['server_name']}")
+        server_choice = input("Select the server number to use: ")
+        try:
+            selected_server = ssh_details[f"subnet{subnet}"][int(server_choice) - 1]
+        except (ValueError, IndexError):
+            print(f"Invalid selection. Please enter a number between 1 and {len(ssh_details[f'subnet{subnet}'])}.")
+            return
+    elif len(ssh_details.get(f"subnet{subnet}", [])) == 1:
+        selected_server = ssh_details[f"subnet{subnet}"][0]
+    else:
+        print(f"No servers found for subnet {subnet}.")
+        return
 
+    if selected_server:
+        launcher_script_path = os.path.join(os.path.dirname(__file__), '..', 'launch_auto_miner_remote.py')
+        subprocess.run([
+            'pm2', 'start', launcher_script_path, '--interpreter', 'python3',
+            '--name', 'auto_miner_launcher_remote', '--',
+            '--endpoint', bt_endpoint, '--server-name', selected_server['server_name']
+        ])
+        print(f"Remote Auto Miner Launcher started for server {selected_server['server_name']} on subnet {subnet}.")
+    else:
+        print("No server selected or available to start the remote auto miner launcher.")
+'''
+
+def start_auto_miner_launcher_remote():
+    bt_endpoint = choose_subtensor_endpoint()  # Get the subtensor endpoint
+    ssh_details = read_ssh_details()
+    sniper_processes = read_sniper_log()
+    active_subnets = {details['netuid'] for _, details in sniper_processes if details['status'] == 'active' and details['endpoint'] == bt_endpoint}
+
+    server_selections = {}
+    for subnet in active_subnets:
+        servers = ssh_details.get(f"subnet{subnet}", [])
+        if len(servers) > 1:
+            print(f"Multiple servers found for subnet {subnet}:")
+            for i, server in enumerate(servers, start=1):
+                print(f"{i}. {server['server_name']}")
+            server_choice = input("Select the server number to use: ")
+            try:
+                selected_server = servers[int(server_choice) - 1]['server_name']
+                server_selections[subnet] = selected_server
+            except (ValueError, IndexError):
+                print(f"Invalid selection. Please enter a number between 1 and {len(servers)}.")
+                return
+        elif len(servers) == 1:
+            server_selections[subnet] = servers[0]['server_name']
+        else:
+            print(f"No servers found for subnet {subnet}.")
+            return
+
+    for subnet, server_name in server_selections.items():
+        # Now that we have the selected server, we can start the remote miner launcher
+        launcher_script_path = os.path.join(os.path.dirname(__file__), '..', 'launch_auto_miner_remote.py')
+        subprocess.run([
+            'pm2', 'start', launcher_script_path, '--interpreter', 'python3',
+            '--name', f"auto_miner_launcher_remote_{subnet}", '--',
+            '--endpoint', bt_endpoint, '--server-name', server_name
+        ])
+        print(f"Remote Auto Miner Launcher started for server {server_name} on subnet {subnet} as PM2 process.")
+'''
+###### version from origin main#######
+def start_auto_miner_launcher_remote():
+    bt_endpoint = choose_subtensor_endpoint()  # Get the subtensor endpoint
+    launcher_script_path = os.path.join(os.path.dirname(__file__), '..', 'launch_auto_miner_remote.py')
+    subprocess.run(['pm2', 'start', launcher_script_path, '--interpreter', 'python3', '--name', 'auto_miner_launcher_remote', '--', '--endpoint', bt_endpoint])
+    print("Remote Auto Miner Launcher started as PM2 process.")
+'''
 
 def clear_all_logs():
     script_dir = os.path.dirname(os.path.dirname(__file__))
@@ -323,7 +401,7 @@ def save_ssh_details():
     print(f"SSH details saved for server {server_name} on subnet {subnet}.")
 
 def read_ssh_details():
-    with open('data/ssh_details(archive).json', 'r') as file:
+    with open('data/ssh_details.json', 'r') as file:
         return json.load(file)
 
 def open_axon_ports():
