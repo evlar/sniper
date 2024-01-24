@@ -27,7 +27,7 @@ From the main menu, choose "Server Details Configuration" and follow the prompts
 - server name: (e.g., sn22 server 2)
 - IP address of your server: (e.g., 12.34.56.789)
 - SSH username: (e.g., root)
-- SSH private key (e.g., ~/.ssh/id_ed25519_vps) [click here](https://github.com/evlar/BT_Help/blob/main/docs/ssh_key_setup.md) for SSH private key setup. 
+- SSH private key (e.g., ~/.ssh/id_ed25519_vps) [click here](ssh_key_setup.md) for SSH private key setup. 
 
 ## Limitations of the Registration Sniper Program
 - **Single Server per Subnet**: Can't launch miners to multiple servers for the same subnet simultaneously.

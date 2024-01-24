@@ -43,7 +43,7 @@ To set up the "registration_sniper" project, follow these steps:
    5. `Clear Logs:` This option clears all log files in the 'logs' directory. Recommended before each new registration/autio-miner-launcher run.
    6. `Exit:` This option exits the main menu and the program.
 
-## Hotkey Naming Structure
+## Hotkey Naming Structure and other requirements
 
 For the "registration_sniper" system to function correctly, it's essential to adhere to a specific naming structure for hotkeys. The naming convention is as follows:
 
@@ -54,3 +54,5 @@ For the "registration_sniper" system to function correctly, it's essential to ad
 Example hotkey names: `s8_1`, `s8_2`, `s19_1`, etc.
 
 This naming structure is crucial for the system to correctly identify and manage different hotkeys, especially when launching and monitoring miner processes.
+
+- SSH key setup: SSH keys must be previously configured so that connections can be made without a password. [click here](docs/ssh_key_setup.md) for setup instructions.
