@@ -1,5 +1,3 @@
-# registration_sniper.py
-
 import argparse
 import os
 import bittensor as bt
@@ -7,7 +5,6 @@ from time import sleep
 import pexpect
 import logging
 from logging.handlers import RotatingFileHandler
-from getpass import getpass
 
 # Set up argument parsing
 parser = argparse.ArgumentParser(description='Run the Bittensor registration sniper.')
@@ -59,7 +56,7 @@ SLEEP_TIME_LONG = 20
 config = bt.config()
 config.name = bt_wallet_name
 config.hotkey = bt_hotkey_name
-config.path = bt_wallet_path  # Use the hardcoded path
+config.path = bt_wallet_path
 config.chain_endpoint = bt_endpoint
 config.netuid = bt_netuid
 config.network = "local" if subtensor_choice == "local" else "remote"
@@ -70,7 +67,7 @@ wallet = bt.wallet(config.name, config.hotkey, config.path)
 subtensor = bt.subtensor(config.chain_endpoint)
 logger.info(f"Wallet: {wallet}")
 logger.info(f"Subtensor: {subtensor}")
-...
+
 # Registration loop
 while True:
     try:
@@ -80,18 +77,7 @@ while True:
         
         # Check if the current cost is below the threshold
         if current_cost.tao < registration_fee_threshold:
-            logger.info(
-                "Current registration fee below threshold. Attempting to register..."
-            )
-
-            # Re-check the current cost right before registering
-            current_cost = subtensor.burn(config.netuid)
-            if current_cost.tao >= registration_fee_threshold:
-                logger.info(
-                    "Registration fee is now above threshold. Waiting to repeat..."
-                )
-                sleep(SLEEP_TIME_SHORT)
-                continue  # Skip the rest of the loop and start over
+            logger.info("Current registration fee below threshold. Attempting to register...")
 
             # Use pexpect to spawn a child process for registration
             child = pexpect.spawn(
@@ -101,16 +87,20 @@ while True:
                     f"""
 import bittensor as bt
 config = bt.config()
-config.name = "{config.name}"
-config.hotkey = "{config.hotkey}"
-config.path = "{config.path}"
-config.chain_endpoint = "{config.chain_endpoint}"
-config.netuid = {config.netuid}
+config.name = "{bt_wallet_name}"
+config.hotkey = "{bt_hotkey_name}"
+config.path = "{bt_wallet_path}"
+config.chain_endpoint = "{bt_endpoint}"
+config.netuid = {bt_netuid}
 config.no_prompt = {config.no_prompt}
 wallet = bt.wallet(config.name, config.hotkey, config.path)
 subtensor = bt.subtensor(config.chain_endpoint)
 try:
-    subtensor.burned_register(netuid=config.netuid, wallet=wallet)
+    current_cost = subtensor.burn(config.netuid)
+    if current_cost.tao < {registration_fee_threshold}:
+        subtensor.burned_register(netuid=config.netuid, wallet=wallet)
+    else:
+        print("Fee exceeded threshold at final check")
 except Exception as e:
     print(f"Failed to register neuron: {{e}}")
                     """,
@@ -122,21 +112,12 @@ except Exception as e:
             output = child.before.decode()
             logger.info(output)  # Print the output from the command
 
-            # Additional check to confirm the fee is still below the threshold
-            current_cost = subtensor.burn(config.netuid)
-            if current_cost.tao >= registration_fee_threshold:
-                logger.info(
-                    "Registration fee increased above threshold after initiating registration."
-                )
-                sleep(SLEEP_TIME_SHORT)
-                continue  # Skip the rest of the loop and start over
-
             # Check if the neuron was successfully registered
-            if "Registered" in output:  # Modified check as per suggestion
+            if "Registered" in output:
                 logger.info("Neuron registered.")
                 break  # Exit the loop
             else:
-                logger.info("Registration unsuccessful. Waiting to repeat....")
+                logger.info("Registration unsuccessful. Waiting to repeat...")
                 sleep(SLEEP_TIME_LONG)
         else:
             logger.info("Current registration fee above threshold.")
@@ -145,4 +126,3 @@ except Exception as e:
     except Exception as e:
         logger.exception(f"An error occurred: {e}")
         sleep(SLEEP_TIME_SHORT)
-...
