@@ -8,9 +8,7 @@
 ## Features
 
 - **Registration Sniper**: Monitors registration fees and registers neurons when the fee is affordable.
-- **Auto Miner Launcher**: Automates the launching of miners for different hotkeys and subnets, both locally and remotely, with environment variable configuration.
-- **Subtensor Endpoint Management**: Handles local and remote subtensor endpoints, allowing users to switch between them easily.
-- **Wallet and Hotkey Management**: Manages Bittensor wallets and hotkeys, ensuring secure and efficient operations.
+- **Auto Miner Launcher**: Automates the launching of miners for different hotkeys and subnets, remotely, with environment variable configuration.
 
 ## Installation
 
