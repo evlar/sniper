@@ -31,11 +31,6 @@ logging.basicConfig(
 CHECK_INTERVAL = 300  # 5 minutes
 PORT_ASSIGNMENTS_FILE = 'data/port_assignments.json'
 
-
-
-# Configure logging
-# logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 def get_available_port(hotkey_name):
     # Extract the numerical identifier from the hotkey name
     _, miner_number = hotkey_name.split('_')
@@ -85,41 +80,10 @@ def construct_pm2_command(wallet_name, hotkey_name, axon_port, templates, local=
         logging.error(f"Template for subnet{subnet_number} not found.")
         return []
 
-
-
-
-    
-
 def stop_sniper_process(pm2_name):
     subprocess.run(['pm2', 'delete', pm2_name])
     logging.info(f"Stopped PM2 sniper process: {pm2_name}")
 
-#def start_mining_for_hotkey(pm2_command):
-#    if pm2_command:
-#        subprocess.run(pm2_command)
-#        logging.info(f"Started mining for hotkey: {pm2_command[6].split('_')[0]} on port {pm2_command[-1]}")
-
-
-'''
-def start_mining_for_hotkey(pm2_command, hotkey_name):
-    if pm2_command:
-        # Load environment variables before executing the PM2 start command
-        # Assuming the environment variables are set in .bashrc or a similar file
-        load_env_command = ["source", "~/.bashrc", "&&"]
-        full_command = load_env_command + pm2_command
-
-        # Start the PM2 process with environment variables loaded
-        subprocess.run(' '.join(full_command), shell=True)
-        logging.info(f"Started mining for hotkey: {hotkey_name} on port {pm2_command[-1]}")
-
-        # Wait for 30 seconds before restarting
-        time.sleep(30)
-
-        # Restart the same process with --update-env
-        restart_command = ['pm2', 'restart', f"{hotkey_name}_miner", '--update-env']
-        subprocess.run(restart_command)
-        logging.info(f"Restarted mining for hotkey: {hotkey_name} with --update-env")
-'''
 
 def allow_port_through_firewall(port):
     try:
@@ -144,17 +108,19 @@ def read_templates():
             return json.load(file)
     return {}
 
-#def get_pm2_list():
-#    result = subprocess.run(['pm2', 'jlist'], stdout=subprocess.PIPE, text=True)
-#    output = result.stdout.strip()
-#    if not output:
-#        logging.error("PM2 jlist returned empty output.")
-#        return []
-#    try:
-#        return json.loads(output)
-#    except json.JSONDecodeError:
-#        logging.error(f"Failed to decode JSON from PM2 jlist output: {output}")
-#        return []
+'''
+def get_pm2_list():
+    result = subprocess.run(['pm2', 'jlist'], stdout=subprocess.PIPE, text=True)
+    output = result.stdout.strip()
+    if not output:
+        logging.error("PM2 jlist returned empty output.")
+        return []
+    try:
+        return json.loads(output)
+    except json.JSONDecodeError:
+        logging.error(f"Failed to decode JSON from PM2 jlist output: {output}")
+        return []
+'''
 
 def read_sniper_log():
     # Path one level up from the current script directory
