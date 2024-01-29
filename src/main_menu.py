@@ -386,7 +386,7 @@ def main_menu():
             else:
                 print("Log deletion cancelled.")
        # elif choice == "6":
-            open_axon_ports()
+           # open_axon_ports()
         elif choice == "6":
             print("Exiting...")
             break
