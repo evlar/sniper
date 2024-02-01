@@ -16,13 +16,5 @@
 - Now, try logging in to the server using SSH: `ssh username@server-ip-address`.
 - If everything is set up correctly, you should be logged in without being asked for a password.
 
-## 4. Disable Password Authentication
-- For enhanced security, consider disabling password authentication on the server.
-- On the server, edit the SSH config file: `sudo nano /etc/ssh/sshd_config`.
-- Find the line `#PasswordAuthentication yes` and change it to `PasswordAuthentication no`.
-- Save the file and restart the SSH service: `sudo systemctl restart sshd`.
-
-## 5. Troubleshooting
+## 4. Troubleshooting
 - If you're unable to log in without a password, check the permissions of the `.ssh` directory and the `authorized_keys` file on the server. They should be owned by your user. Set the permissions with: `chmod 700 ~/.ssh` and `chmod 600 ~/.ssh/authorized_keys`.
-
-> Note: These steps assume SSH is installed and running on both the client and the Ubuntu server. Be cautious when disabling password authentication, as it prevents password-based logins from any client that doesn't have the corresponding private key.
