@@ -79,6 +79,52 @@ def construct_pm2_command(wallet_name, hotkey_name, axon_port, templates, local=
     else:
         logging.error(f"Template for subnet{subnet_number} not found.")
         return []
+    
+def construct_pm2_command(wallet_name, hotkey_name, axon_port, templates, local=True):
+    subnet_number = hotkey_name.split('_')[0][1:]
+    subnet_template = templates.get(f"subnet{subnet_number}")
+
+    if subnet_template:
+        # Get the path to miner and expand it if necessary
+        path_to_miner = subnet_template["path_to_miner"]
+        if local:
+            if path_to_miner.startswith("~/"):
+                path_to_miner = os.path.expanduser(path_to_miner)
+            elif not os.path.isabs(path_to_miner):
+                script_dir = os.path.dirname(os.path.dirname(__file__))
+                path_to_miner = os.path.join(script_dir, path_to_miner)
+
+        # Construct environment variable part of the command
+        api_keys = subnet_template.get("api_keys", {})
+        env_vars = ' '.join(f'{key}={value}' for key, value in api_keys.items())
+        
+        # Start building the command
+        command = [
+            env_vars,
+            'pm2', 'start', path_to_miner, '--name', f"{hotkey_name}_miner",
+            '--interpreter', 'python3', '--',
+            '--netuid', subnet_number, '--subtensor.network', 'local'
+        ]
+
+        # Add additional parameters from the template immediately after --subtensor.network local
+        additional_params = subnet_template.get("additional_params", {})
+        for param, value in additional_params.items():
+            command.extend([f"--{param}", value])
+
+        # Continue adding the rest of the parameters
+        command.extend([
+            '--wallet.name', wallet_name, '--wallet.hotkey', hotkey_name,
+            '--axon.port', str(axon_port)
+        ])
+
+        # Add logging debug if applicable at the end
+        if subnet_template.get("logging_debug", False):
+            command.append('--logging.debug')
+
+        return command
+    else:
+        logging.error(f"Template for subnet{subnet_number} not found.")
+        return []
 
 def stop_sniper_process(pm2_name):
     subprocess.run(['pm2', 'delete', pm2_name])

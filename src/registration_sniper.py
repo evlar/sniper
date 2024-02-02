@@ -72,7 +72,7 @@ logger.info(f"Subtensor: {subtensor}")
 while True:
     try:
         # Get the current cost of registration
-        current_cost = subtensor.recycle(config.netuid)
+        current_cost = subtensor.burn(config.netuid)
         logger.info("Current cost: %s", current_cost.tao)
         
         # Check if the current cost is below the threshold
@@ -96,7 +96,7 @@ config.no_prompt = {config.no_prompt}
 wallet = bt.wallet(config.name, config.hotkey, config.path)
 subtensor = bt.subtensor(config.chain_endpoint)
 try:
-    current_cost = subtensor.recycle(config.netuid)
+    current_cost = subtensor.burn(config.netuid)
     if current_cost.tao < {registration_fee_threshold}:
         subtensor.burned_register(netuid=config.netuid, wallet=wallet)
     else:
